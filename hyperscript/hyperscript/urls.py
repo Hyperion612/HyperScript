@@ -21,6 +21,7 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('todo.urls')),
+    path('calendar/', include('calendar_app.urls')),
     # path('notes/', include('notes.urls')),      # ЗАКОММЕНТИРУЙ пока
     # path('calculator/', include('calculator.urls')),  # ЗАКОММЕНТИРУЙ пока
     path('accounts/', include('django.contrib.auth.urls')),

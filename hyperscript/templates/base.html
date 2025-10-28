@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %} HyperScript {% endblock %}</title>
+    <title>{% block title %}HyperScript{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         .completed {
@@ -13,52 +13,103 @@
         .priority-low { border-left: 4px solid #0d6efd; }
         .priority-medium { border-left: 4px solid #ffc107; }
         .priority-high { border-left: 4px solid #dc3545; }
-        .priority-low { 
-        border-left: 4px solid #0d6efd; 
-        background-color: #f8f9fa;
-    }
-        .priority-medium { 
-        border-left: 4px solid #ffc107; 
-        background-color: #fff3cd;
-    }
-.priority-high { 
-    border-left: 4px solid #dc3545; 
-    background-color: #f8d7da;
-}
-.completed {
-    text-decoration: line-through;
-    opacity: 0.6;
-    background-color: #d1e7dd !important;
-}
+        
+        /* Стили для активной вкладки */
+        .nav-tabs .nav-link.active {
+            font-weight: bold;
+            border-bottom: 3px solid #0d6efd;
+        }
+        
+        /* Убираем стандартные отступы у навбара */
+        .navbar {
+            margin-bottom: 0;
+        }
     </style>
 </head>
 <body>
+    <!-- Верхняя навигационная панель -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'task_list' %}">HyperScript</a>
+            <a class="navbar-brand fw-bold" href="{% url 'task_list' %}">
+                🚀 HyperScript
+            </a>
             
             <div class="navbar-nav ms-auto">
                 {% if user.is_authenticated %}
-                    <span class="navbar-text me-3">Привет, {{ user.username }}!</span>
-                    <a class="nav-link" href="{% url 'logout' %}">Выйти</a>
+                    <span class="navbar-text me-3">👋 Привет, {{ user.username }}!</span>
+                    <a class="nav-link" href="{% url 'logout' %}">🚪 Выйти</a>
                 {% else %}
-                    <a class="nav-link" href="{% url 'login' %}">Войти</a>
+                    <a class="nav-link" href="{% url 'login' %}">🔑 Войти</a>
                 {% endif %}
             </div>
         </div>
     </nav>
 
-    <div class="container mt-4">
+    <!-- Вкладки приложений -->
+    <div class="bg-light border-bottom">
+        <div class="container">
+            <ul class="nav nav-tabs nav-justified">
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'task_list' %}active{% endif %}" 
+                       href="{% url 'task_list' %}">
+                        ✅ Задачи
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if 'calendar' in request.path %}active{% endif %}" 
+                       href="{% url 'year_calendar' %}">
+                        📅 Календарь
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link disabled" href="#">
+                        📊 Калькулятор оценок (скоро)
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link disabled" href="#">
+                        🧮 Тренажер счета (скоро)
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link disabled" href="#">
+                        🎮 Игры (скоро)
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Основное содержимое -->
+    <main class="container mt-4">
         {% if messages %}
             {% for message in messages %}
-                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
             {% endfor %}
         {% endif %}
         
         {% block content %}
         {% endblock %}
-    </div>
+    </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Скрипт для подсветки активной вкладки -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Автоматически определяем активную вкладку по URL
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('.nav-tabs .nav-link');
+            
+            navLinks.forEach(link => {
+                if (link.href.includes(currentPath) && currentPath !== '/') {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
 </body>
 </html>

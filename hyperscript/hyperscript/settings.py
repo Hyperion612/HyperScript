@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'todo.apps.TodoConfig',
     'notes.apps.NotesConfig',     
     'calculator.apps.CalculatorConfig',
+    'calendar_app'
 ]
 
 MIDDLEWARE = [
