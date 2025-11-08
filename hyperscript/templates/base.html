@@ -40,6 +40,7 @@
                     <a class="nav-link" href="{% url 'logout' %}">🚪 Выйти</a>
                 {% else %}
                     <a class="nav-link" href="{% url 'login' %}">🔑 Войти</a>
+                    <a class="nav-link" href="{% url 'register' %}">📝 Регистрация</a>
                 {% endif %}
             </div>
         </div>
@@ -62,11 +63,10 @@
                     </a>
                 </li>
                 <li class="nav-item">
-    <a class="nav-link {% if 'calculator' in request.path %}active{% endif %}" 
-       href="{% url 'grade_calculator' %}">
-        📊 Калькулятор оценок
-    </a>
-                </li>
+                    <a class="nav-link {% if 'calculator' in request.path %}active{% endif %}" 
+                       href="{% url 'grade_calculator' %}">
+                        📊 Калькулятор оценок
+                    </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link disabled" href="#">

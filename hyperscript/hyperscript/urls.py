@@ -28,4 +28,5 @@ urlpatterns = [
     path('accounts/', include('django.contrib.auth.urls')),
     path('accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('accounts/register/', register, name='register'),  # кастомная регистрация
+    path('accounts/logout/', auth_views.LogoutView.as_view(next_page='task_list'), name='logout'),
 ]
