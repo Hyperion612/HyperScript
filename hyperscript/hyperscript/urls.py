@@ -22,6 +22,7 @@ from django.contrib import admin
 from django.urls import path, include
 from calculator.views import grade_calculator, register
 from django.contrib.auth import views as auth_views
+from calculator.views import custom_logout
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -31,7 +32,7 @@ urlpatterns = [
     path('accounts/register/', register, name='register'),
     
     # ✅ ЕДИНСТВЕННЫЙ путь для выхода:
-    path('accounts/logout/', auth_views.LogoutView.as_view(next_page='task_list'), name='logout'),
+    path('accounts/logout/', custom_logout, name='logout'),
     
     # Остальные auth URLs
     path('accounts/', include('django.contrib.auth.urls')),
