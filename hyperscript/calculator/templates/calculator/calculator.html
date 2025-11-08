@@ -18,10 +18,16 @@
                         <div id="gradesContainer">
                             <div class="grade-row row mb-2">
                                 <div class="col-md-6">
-                                    <input type="number" name="grades[]" class="form-control" placeholder="Оценка (например: 85)" min="0" max="100" step="0.1">
+                                    <select name="grades[]" class="form-select">
+                                        <option value="">Выберите оценку</option>
+                                        <option value="5">5 - Отлично</option>
+                                        <option value="4">4 - Хорошо</option>
+                                        <option value="3">3 - Удовлетворительно</option>
+                                        <option value="2">2 - Неудовлетворительно</option>
+                                    </select>
                                 </div>
                                 <div class="col-md-4">
-                                    <input type="number" name="weights[]" class="form-control" placeholder="Вес (например: 1)" min="0.1" step="0.1" value="1">
+                                    <input type="number" name="weights[]" class="form-control" placeholder="Вес" min="0.1" step="0.1" value="1">
                                 </div>
                                 <div class="col-md-2">
                                     <button type="button" class="btn btn-danger btn-sm remove-grade" disabled>🗑</button>
@@ -56,11 +62,20 @@
                 <div class="card-body">
                     <h6>Как пользоваться:</h6>
                     <ul class="small">
-                        <li>Введите оценку (от 0 до 100)</li>
-                        <li>Укажите вес оценки (например: контрольная - 2, домашняя работа - 1)</li>
+                        <li>Выберите оценку от 2 до 5</li>
+                        <li>Укажите вес оценки (контрольная - 2, домашняя работа - 1)</li>
                         <li>Добавьте все свои оценки</li>
-                        <li>Нажмите "Рассчитать"</li>
+                        <li>Нажмите "Рассчитать" для получения среднего балла</li>
                     </ul>
+                    <div class="mt-2">
+                        <strong>Система оценок:</strong>
+                        <ul class="small mb-0">
+                            <li>5 - Отлично</li>
+                            <li>4 - Хорошо</li>
+                            <li>3 - Удовлетворительно</li>
+                            <li>2 - Неудовлетворительно</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
@@ -81,10 +96,16 @@ document.addEventListener('DOMContentLoaded', function() {
         newRow.className = 'grade-row row mb-2';
         newRow.innerHTML = `
             <div class="col-md-6">
-                <input type="number" name="grades[]" class="form-control" placeholder="Оценка (например: 85)" min="0" max="100" step="0.1">
+                <select name="grades[]" class="form-select">
+                    <option value="">Выберите оценку</option>
+                    <option value="5">5 - Отлично</option>
+                    <option value="4">4 - Хорошо</option>
+                    <option value="3">3 - Удовлетворительно</option>
+                    <option value="2">2 - Неудовлетворительно</option>
+                </select>
             </div>
             <div class="col-md-4">
-                <input type="number" name="weights[]" class="form-control" placeholder="Вес (например: 1)" min="0.1" step="0.1" value="1">
+                <input type="number" name="weights[]" class="form-control" placeholder="Вес" min="0.1" step="0.1" value="1">
             </div>
             <div class="col-md-2">
                 <button type="button" class="btn btn-danger btn-sm remove-grade">🗑</button>
@@ -126,8 +147,10 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.success) {
                 resultDiv.style.display = 'block';
                 errorDiv.style.display = 'none';
-                document.getElementById('resultText').textContent = 
-                    `Средний балл: ${data.average_grade}% (Общий вес: ${data.total_weight})`;
+                document.getElementById('resultText').innerHTML = 
+                    `<strong>Средний балл: ${data.average_grade}</strong><br>
+                     <strong>Качество: ${data.qualitative_grade}</strong><br>
+                     Общий вес: ${data.total_weight}`;
             } else {
                 errorDiv.style.display = 'block';
                 resultDiv.style.display = 'none';
