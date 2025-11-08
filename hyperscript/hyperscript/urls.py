@@ -18,15 +18,21 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.contrib import admin
-from calculator.views import grade_calculator, register  # добавил register
+from django.contrib import admin
+from django.urls import path, include
+from calculator.views import grade_calculator, register
 from django.contrib.auth import views as auth_views
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('todo.urls')),
     path('calendar/', include('calendar_app.urls')),
     path('calculator/', grade_calculator, name='grade_calculator'),
-    path('accounts/', include('django.contrib.auth.urls')),
-    path('accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),
-    path('accounts/register/', register, name='register'),  # кастомная регистрация
+    path('accounts/register/', register, name='register'),
+    
+    # ✅ ЕДИНСТВЕННЫЙ путь для выхода:
     path('accounts/logout/', auth_views.LogoutView.as_view(next_page='task_list'), name='logout'),
+    
+    # Остальные auth URLs
+    path('accounts/', include('django.contrib.auth.urls')),
 ]
