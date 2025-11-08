@@ -62,9 +62,11 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link disabled" href="#">
-                        📊 Калькулятор оценок (скоро)
-                    </a>
+    <a class="nav-link {% if 'calculator' in request.path %}active{% endif %}" 
+       href="{% url 'grade_calculator' %}">
+        📊 Калькулятор оценок
+    </a>
+                </li>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link disabled" href="#">

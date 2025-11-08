@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+
+{% block title %}Калькулятор оценок - Study Assistant{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="text-center mb-4">📊 Калькулятор оценок</h1>
+    
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Рассчитай свой средний балл</h5>
+                </div>
+                <div class="card-body">
+                    <form id="gradeForm">
+                        {% csrf_token %}
+                        <div id="gradesContainer">
+                            <div class="grade-row row mb-2">
+                                <div class="col-md-6">
+                                    <input type="number" name="grades[]" class="form-control" placeholder="Оценка (например: 85)" min="0" max="100" step="0.1">
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="number" name="weights[]" class="form-control" placeholder="Вес (например: 1)" min="0.1" step="0.1" value="1">
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="button" class="btn btn-danger btn-sm remove-grade" disabled>🗑</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <button type="button" id="addGrade" class="btn btn-outline-primary btn-sm">+ Добавить оценку</button>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100">Рассчитать средний балл</button>
+                    </form>
+                    
+                    <div id="result" class="mt-3" style="display: none;">
+                        <div class="alert alert-success">
+                            <h5>Результат:</h5>
+                            <p id="resultText"></p>
+                        </div>
+                    </div>
+                    
+                    <div id="error" class="mt-3" style="display: none;">
+                        <div class="alert alert-danger">
+                            <p id="errorText"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Инструкция -->
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h6>Как пользоваться:</h6>
+                    <ul class="small">
+                        <li>Введите оценку (от 0 до 100)</li>
+                        <li>Укажите вес оценки (например: контрольная - 2, домашняя работа - 1)</li>
+                        <li>Добавьте все свои оценки</li>
+                        <li>Нажмите "Рассчитать"</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const gradesContainer = document.getElementById('gradesContainer');
+    const addButton = document.getElementById('addGrade');
+    const form = document.getElementById('gradeForm');
+    const resultDiv = document.getElementById('result');
+    const errorDiv = document.getElementById('error');
+    
+    // Добавление новой строки оценки
+    addButton.addEventListener('click', function() {
+        const newRow = document.createElement('div');
+        newRow.className = 'grade-row row mb-2';
+        newRow.innerHTML = `
+            <div class="col-md-6">
+                <input type="number" name="grades[]" class="form-control" placeholder="Оценка (например: 85)" min="0" max="100" step="0.1">
+            </div>
+            <div class="col-md-4">
+                <input type="number" name="weights[]" class="form-control" placeholder="Вес (например: 1)" min="0.1" step="0.1" value="1">
+            </div>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-danger btn-sm remove-grade">🗑</button>
+            </div>
+        `;
+        gradesContainer.appendChild(newRow);
+        updateRemoveButtons();
+    });
+    
+    // Обновление кнопок удаления
+    function updateRemoveButtons() {
+        const removeButtons = document.querySelectorAll('.remove-grade');
+        removeButtons.forEach(btn => {
+            btn.disabled = document.querySelectorAll('.grade-row').length === 1;
+            btn.onclick = function() {
+                if (document.querySelectorAll('.grade-row').length > 1) {
+                    this.closest('.grade-row').remove();
+                    updateRemoveButtons();
+                }
+            };
+        });
+    }
+    
+    // Обработка формы
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        
+        fetch('', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                resultDiv.style.display = 'block';
+                errorDiv.style.display = 'none';
+                document.getElementById('resultText').textContent = 
+                    `Средний балл: ${data.average_grade}% (Общий вес: ${data.total_weight})`;
+            } else {
+                errorDiv.style.display = 'block';
+                resultDiv.style.display = 'none';
+                document.getElementById('errorText').textContent = data.error;
+            }
+        })
+        .catch(error => {
+            errorDiv.style.display = 'block';
+            resultDiv.style.display = 'none';
+            document.getElementById('errorText').textContent = 'Ошибка при расчете';
+        });
+    });
+    
+    updateRemoveButtons();
+});
+</script>
+
+<style>
+.grade-row {
+    align-items: center;
+}
+.remove-grade:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+</style>
+{% endblock %}
