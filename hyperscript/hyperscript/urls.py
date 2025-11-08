@@ -19,12 +19,13 @@ from django.contrib import admin
 from django.urls import path, include
 from django.contrib import admin
 from calculator.views import grade_calculator, register  # добавил register
-
+from django.contrib.auth import views as auth_views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('todo.urls')),
     path('calendar/', include('calendar_app.urls')),
     path('calculator/', grade_calculator, name='grade_calculator'),
     path('accounts/', include('django.contrib.auth.urls')),
+    path('accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('accounts/register/', register, name='register'),  # кастомная регистрация
 ]
