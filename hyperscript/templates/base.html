@@ -30,11 +30,65 @@
         /* Навигация */
         .nav-link { transition: all 0.2s; }
         .nav-link:hover { background-color: rgba(255,255,255,0.1); }
+        
+        /* Глобальный плеер */
+        #globalPlayer {
+            border-bottom: 2px solid #495057;
+            z-index: 1030;
+        }
+        #globalAudio {
+            height: 30px;
+            max-width: 400px;
+        }
+        .text-small {
+            font-size: 0.9rem;
+        }
+        
+        /* Адаптивность плеера */
+        @media (max-width: 768px) {
+            #globalPlayer .col-md-3,
+            #globalPlayer .col-md-7,
+            #globalPlayer .col-md-2 {
+                margin-bottom: 0.5rem;
+            }
+            #globalAudio {
+                max-width: 200px;
+            }
+            .sidebar {
+                position: fixed;
+                z-index: 1040;
+            }
+        }
     </style>
 </head>
 <body>
-    <!-- Верхняя панель -->
-    <nav class="navbar navbar-dark bg-dark">
+    <!-- Глобальный музыкальный плеер -->
+    <div id="globalPlayer" class="bg-dark text-white py-2" style="display: none;">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-md-3">
+                    <strong id="nowPlaying" class="text-small">🎵 Не играет</strong>
+                </div>
+                <div class="col-md-7">
+                    <div class="d-flex align-items-center gap-3">
+                        <audio id="globalAudio" controls class="flex-grow-1">
+                            Ваш браузер не поддерживает аудио элементы.
+                        </audio>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="repeatCheckbox">
+                            <label class="form-check-label text-small" for="repeatCheckbox">🔁 Повтор</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2 text-end">
+                    <button onclick="stopGlobalPlayback()" class="btn btn-sm btn-outline-light">✖ Стоп</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Верхняя панель навигации -->
+    <nav class="navbar navbar-dark bg-primary">
         <div class="container-fluid">
             <!-- Кнопка сайдбара -->
             <button class="navbar-toggler sidebar-toggle" type="button">
@@ -153,73 +207,141 @@
         </div>
     </div>
 
-    <!-- Глобальный музыкальный плеер -->
-    <div id="globalPlayer" class="card fixed-bottom mb-3 mx-3" style="display: none; z-index: 1050;">
-        <div class="card-body py-2">
-            <div class="row align-items-center">
-                <div class="col-md-4">
-                    <strong id="nowPlaying">Не играет</strong>
-                </div>
-                <div class="col-md-6">
-                    <audio id="globalAudio" controls class="w-100">
-                        Ваш браузер не поддерживает аудио элементы.
-                    </audio>
-                </div>
-                <div class="col-md-2 text-end">
-                    <button onclick="stopGlobalPlayback()" class="btn btn-sm btn-danger">✖ Стоп</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
-        // Управление сайдбаром
-        document.querySelector('.sidebar-toggle').addEventListener('click', function() {
-            const sidebar = document.getElementById('sidebar');
-            const mainContent = document.getElementById('mainContent');
-            
-            sidebar.classList.toggle('collapsed');
-            mainContent.classList.toggle('col-md-12');
-        });
-
-        // Адаптивный сайдбар
-        function handleResize() {
-            const sidebar = document.getElementById('sidebar');
-            const mainContent = document.getElementById('mainContent');
-            
-            if (window.innerWidth < 768) {
-                sidebar.classList.add('collapsed');
-                mainContent.classList.add('col-md-12');
-            }
-        }
-
-        window.addEventListener('resize', handleResize);
-        document.addEventListener('DOMContentLoaded', handleResize);
-
-        // Музыкальный плеер (если используется)
+        // Глобальные переменные для плеера
         let globalAudio = document.getElementById('globalAudio');
         let globalPlayer = document.getElementById('globalPlayer');
         let nowPlaying = document.getElementById('nowPlaying');
+        let repeatCheckbox = document.getElementById('repeatCheckbox');
+        let isRepeating = false;
 
+        // Инициализация плеера при загрузке
+        document.addEventListener('DOMContentLoaded', function() {
+            // Восстановление состояния плеера из localStorage
+            const savedTrack = localStorage.getItem('currentTrack');
+            const savedTime = localStorage.getItem('currentTime');
+            const savedRepeat = localStorage.getItem('repeatEnabled');
+            
+            if (savedTrack && globalAudio) {
+                globalAudio.src = savedTrack;
+                globalAudio.currentTime = parseFloat(savedTime) || 0;
+                globalPlayer.style.display = 'block';
+                nowPlaying.textContent = '🎵 Сейчас играет: (восстановлено)';
+                
+                // Автоматическое воспроизведение при восстановлении
+                globalAudio.play().catch(e => {
+                    console.log('Автовоспроизведение заблокировано');
+                });
+            }
+            
+            // Восстановление режима повтора
+            if (savedRepeat === 'true' && repeatCheckbox) {
+                repeatCheckbox.checked = true;
+                isRepeating = true;
+            }
+
+            // Обработчик окончания трека
+            if (globalAudio) {
+                globalAudio.addEventListener('ended', function() {
+                    if (isRepeating) {
+                        globalAudio.currentTime = 0;
+                        globalAudio.play();
+                    }
+                });
+            }
+
+            // Обработчик изменения режима повтора
+            if (repeatCheckbox) {
+                repeatCheckbox.addEventListener('change', function() {
+                    isRepeating = this.checked;
+                    localStorage.setItem('repeatEnabled', isRepeating);
+                });
+            }
+
+            // Сохранение состояния каждую секунду
+            setInterval(function() {
+                if (globalAudio && globalAudio.src && !globalAudio.paused) {
+                    localStorage.setItem('currentTrack', globalAudio.src);
+                    localStorage.setItem('currentTime', globalAudio.currentTime);
+                }
+            }, 1000);
+
+            // Управление сайдбаром
+            const sidebarToggle = document.querySelector('.sidebar-toggle');
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', function() {
+                    const sidebar = document.getElementById('sidebar');
+                    const mainContent = document.getElementById('mainContent');
+                    
+                    if (sidebar && mainContent) {
+                        sidebar.classList.toggle('collapsed');
+                        mainContent.classList.toggle('col-md-12');
+                    }
+                });
+            }
+
+            // Адаптивный сайдбар
+            function handleResize() {
+                const sidebar = document.getElementById('sidebar');
+                const mainContent = document.getElementById('mainContent');
+                
+                if (window.innerWidth < 768 && sidebar && mainContent) {
+                    sidebar.classList.add('collapsed');
+                    mainContent.classList.add('col-md-12');
+                }
+            }
+
+            window.addEventListener('resize', handleResize);
+            handleResize();
+        });
+
+        // Глобальная функция для воспроизведения (доступна из любого места)
         function playGlobal(audioUrl, trackTitle) {
             if (globalAudio && globalPlayer && nowPlaying) {
                 globalAudio.src = audioUrl;
-                globalAudio.play();
-                nowPlaying.textContent = `Сейчас играет: ${trackTitle}`;
-                globalPlayer.style.display = 'block';
+                globalAudio.play().then(() => {
+                    nowPlaying.textContent = `🎵 Сейчас играет: ${trackTitle}`;
+                    globalPlayer.style.display = 'block';
+                    
+                    // Сохраняем в localStorage
+                    localStorage.setItem('currentTrack', audioUrl);
+                    localStorage.setItem('currentTime', '0');
+                }).catch(e => {
+                    console.log('Ошибка воспроизведения:', e);
+                });
             }
         }
 
+        // Остановка воспроизведения
         function stopGlobalPlayback() {
             if (globalAudio && globalPlayer && nowPlaying) {
                 globalAudio.pause();
                 globalAudio.currentTime = 0;
                 globalPlayer.style.display = 'none';
-                nowPlaying.textContent = 'Не играет';
+                nowPlaying.textContent = '🎵 Не играет';
+                
+                // Очищаем localStorage
+                localStorage.removeItem('currentTrack');
+                localStorage.removeItem('currentTime');
+                localStorage.removeItem('repeatEnabled');
             }
         }
+
+        // Функция для переключения повтора (можно вызывать извне)
+        function toggleRepeat() {
+            isRepeating = !isRepeating;
+            if (repeatCheckbox) {
+                repeatCheckbox.checked = isRepeating;
+            }
+            localStorage.setItem('repeatEnabled', isRepeating);
+        }
+
+        // Сделаем функции глобально доступными
+        window.playGlobal = playGlobal;
+        window.stopGlobalPlayback = stopGlobalPlayback;
+        window.toggleRepeat = toggleRepeat;
     </script>
 </body>
 </html>

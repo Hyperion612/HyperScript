@@ -9,27 +9,33 @@
         <div class="col-lg-6">
             <h1 class="display-4 fw-bold mb-4">🚀 HyperScript</h1>
             <p class="lead mb-4">Твой личный помощник для учебы и повседневной жизни. Все необходимые инструменты в одном месте!</p>
-            <div class="d-flex gap-3">
-                <a href="{% url 'task_list' %}" class="btn btn-primary btn-lg">Начать использовать</a>
-                <a href="#apps" class="btn btn-outline-primary btn-lg">Узнать больше</a>
+            <div class="d-flex gap-3 flex-wrap">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'task_list' %}" class="btn btn-primary btn-lg">Продолжить работу</a>
+                    <a href="{% url 'music_player' %}" class="btn btn-success btn-lg">🎵 Слушать музыку</a>
+                {% else %}
+                    <a href="{% url 'register' %}" class="btn btn-primary btn-lg">Начать использовать</a>
+                    <a href="{% url 'login' %}" class="btn btn-outline-primary btn-lg">Войти в аккаунт</a>
+                {% endif %}
+                <a href="#apps" class="btn btn-outline-secondary btn-lg">Узнать больше</a>
             </div>
         </div>
         <div class="col-lg-6">
             <div class="card bg-light border-0">
                 <div class="card-body p-4">
-                    <h5>📊 Статистика</h5>
+                    <h5>📊 Статистика платформы</h5>
                     <div class="row text-center">
                         <div class="col-4">
-                            <div class="h4 text-primary">{{ completed_tasks|default:"0" }}</div>
-                            <small>Выполнено задач</small>
+                            <div class="h4 text-primary">{{ user.task_set.count|default:"0" }}</div>
+                            <small>Ваши задачи</small>
                         </div>
                         <div class="col-4">
-                            <div class="h4 text-success">{{ uploaded_tracks|default:"0" }}</div>
-                            <small>Треков в плеере</small>
+                            <div class="h4 text-success">{{ user.musictrack_set.count|default:"0" }}</div>
+                            <small>Ваши треки</small>
                         </div>
                         <div class="col-4">
-                            <div class="h4 text-info">{{ calculated_grades|default:"0" }}</div>
-                            <small>Рассчитано оценок</small>
+                            <div class="h4 text-info">4</div>
+                            <small>Доступных приложений</small>
                         </div>
                     </div>
                 </div>
@@ -103,6 +109,35 @@
                     <h5>Игры</h5>
                     <p class="text-muted">Отдыхай с интересными играми (скоро).</p>
                     <button class="btn btn-outline-secondary" disabled>Скоро</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- О платформе -->
+    <div class="row py-5 bg-light rounded-3">
+        <div class="col-lg-8 mx-auto text-center">
+            <h2 class="mb-4">💫 О HyperScript</h2>
+            <p class="lead mb-4">
+                HyperScript - это универсальная платформа, созданная для студентов и всех, кто хочет 
+                организовать свою учебную и повседневную жизнь. Мы объединяем лучшие инструменты 
+                в одном удобном месте.
+            </p>
+            <div class="row mt-5">
+                <div class="col-md-4">
+                    <div class="h1">🔒</div>
+                    <h6>Безопасность</h6>
+                    <p class="small">Ваши данные защищены</p>
+                </div>
+                <div class="col-md-4">
+                    <div class="h1">⚡</div>
+                    <h6>Скорость</h6>
+                    <p class="small">Быстрая работа всех приложений</p>
+                </div>
+                <div class="col-md-4">
+                    <div class="h1">🎵</div>
+                    <h6>Музыка</h6>
+                    <p class="small">Непрерывное воспроизведение</p>
                 </div>
             </div>
         </div>
