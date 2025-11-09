@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}Профиль - HyperScript{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="h1">👤</div>
+                    <h4>{{ user.username }}</h4>
+                    <p class="text-muted">{{ user.email|default:"Email не указан" }}</p>
+                    <div class="mt-3">
+                        <small class="text-muted">Зарегистрирован: {{ user.date_joined|date:"d.m.Y" }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">📊 Статистика активности</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <div class="h4 text-primary">{% if user_tasks %}{{ user_tasks.count }}{% else %}0{% endif %}</div>
+                            <small>Всего задач</small>
+                        </div>
+                        <div class="col-4">
+                            <div class="h4 text-success">{% if completed_tasks %}{{ completed_tasks }}{% else %}0{% endif %}</div>
+                            <small>Выполнено</small>
+                        </div>
+                        <div class="col-4">
+                            <div class="h4 text-info">{% if user_tracks %}{{ user_tracks.count }}{% else %}0{% endif %}</div>
+                            <small>Треков</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">⚡ Быстрые действия</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'task_list' %}" class="btn btn-outline-primary">📝 К задачам</a>
+                        <a href="{% url 'music_player' %}" class="btn btn-outline-success">🎵 К музыке</a>
+                        <a href="{% url 'grade_calculator' %}" class="btn btn-outline-info">📊 К калькулятору</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

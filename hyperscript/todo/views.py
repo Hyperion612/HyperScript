@@ -4,6 +4,14 @@ from django.contrib import messages
 from .models import Task
 from .forms import TaskForm
 
+def home(request):
+    """Главная страница с обзором приложений"""
+    return render(request, 'home.html')
+
+def profile(request):
+    """Страница профиля пользователя"""
+    return render(request, 'profile.html')
+
 @login_required
 def task_list(request):
     tasks = Task.objects.filter(user=request.user).order_by('-created_at')

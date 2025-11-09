@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}HyperScript - Главная{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Герой-секция -->
+    <div class="row align-items-center py-5">
+        <div class="col-lg-6">
+            <h1 class="display-4 fw-bold mb-4">🚀 HyperScript</h1>
+            <p class="lead mb-4">Твой личный помощник для учебы и повседневной жизни. Все необходимые инструменты в одном месте!</p>
+            <div class="d-flex gap-3">
+                <a href="{% url 'task_list' %}" class="btn btn-primary btn-lg">Начать использовать</a>
+                <a href="#apps" class="btn btn-outline-primary btn-lg">Узнать больше</a>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card bg-light border-0">
+                <div class="card-body p-4">
+                    <h5>📊 Статистика</h5>
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <div class="h4 text-primary">{{ completed_tasks|default:"0" }}</div>
+                            <small>Выполнено задач</small>
+                        </div>
+                        <div class="col-4">
+                            <div class="h4 text-success">{{ uploaded_tracks|default:"0" }}</div>
+                            <small>Треков в плеере</small>
+                        </div>
+                        <div class="col-4">
+                            <div class="h4 text-info">{{ calculated_grades|default:"0" }}</div>
+                            <small>Рассчитано оценок</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Приложения -->
+    <div id="apps" class="row py-5">
+        <h2 class="text-center mb-5">🎯 Наши приложения</h2>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="h1 mb-3">✅</div>
+                    <h5>Менеджер задач</h5>
+                    <p class="text-muted">Организуй свои дела, устанавливай приоритеты и сроки выполнения.</p>
+                    <a href="{% url 'task_list' %}" class="btn btn-outline-primary">Открыть</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="h1 mb-3">📅</div>
+                    <h5>Календарь</h5>
+                    <p class="text-muted">Планируй свое время с удобным календарем на год и месяц.</p>
+                    <a href="{% url 'year_calendar' %}" class="btn btn-outline-primary">Открыть</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="h1 mb-3">📊</div>
+                    <h5>Калькулятор оценок</h5>
+                    <p class="text-muted">Рассчитывай средний балл с учетом весов оценок.</p>
+                    <a href="{% url 'grade_calculator' %}" class="btn btn-outline-primary">Открыть</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="h1 mb-3">🎵</div>
+                    <h5>Музыкальный плеер</h5>
+                    <p class="text-muted">Слушай свою музыку без перерывов при переключении вкладок.</p>
+                    <a href="{% url 'music_player' %}" class="btn btn-outline-primary">Открыть</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="h1 mb-3">🧮</div>
+                    <h5>Тренажер счета</h5>
+                    <p class="text-muted">Развивай математические навыки (скоро).</p>
+                    <button class="btn btn-outline-secondary" disabled>Скоро</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="h1 mb-3">🎮</div>
+                    <h5>Игры</h5>
+                    <p class="text-muted">Отдыхай с интересными играми (скоро).</p>
+                    <button class="btn btn-outline-secondary" disabled>Скоро</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
