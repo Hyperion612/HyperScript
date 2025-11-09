@@ -47,10 +47,13 @@
                         <button onclick="stopGlobalPlayback()" class="btn btn-outline-danger btn-sm">
                             ✖ Остановить всё
                         </button>
+                        <button onclick="playPauseAudio()" class="btn btn-outline-success btn-sm" id="globalPlayPauseBtn">
+                            ▶ Воспроизвести/Пауза
+                        </button>
                     </div>
                     <div class="mt-3">
                         <small class="text-muted">
-                            💡 Музыка продолжает играть даже при переходе на другие страницы!
+                            💡 Плеер готов к работе! Нажмите "Воспроизвести" чтобы начать.
                         </small>
                     </div>
                 </div>
@@ -78,8 +81,10 @@
                                         </small>
                                     </div>
                                     <div class="btn-group ms-3">
-                                        <button onclick="playGlobal('{{ track.audio_file.url }}', '{{ track.title }}')" 
-                                                class="btn btn-sm btn-success">▶ Воспроизвести</button>
+                                        <button onclick="prepareTrack('{{ track.audio_file.url }}', '{{ track.title }}')" 
+                                                class="btn btn-sm btn-success">▶ Подготовить</button>
+                                        <button onclick="playPreparedTrack()" 
+                                                class="btn btn-sm btn-primary">🔊 Воспроизвести</button>
                                         <a href="{% url 'delete_track' track.id %}" 
                                            class="btn btn-sm btn-danger"
                                            onclick="return confirm('Удалить трек &quot;{{ track.title }}&quot;?')">🗑 Удалить</a>
@@ -103,16 +108,103 @@
                 <div class="card-body">
                     <h6>🎧 Как работает плеер</h6>
                     <ul class="small mb-0">
+                        <li><strong>▶ Подготовить</strong> - загружает трек в плеер</li>
+                        <li><strong>🔊 Воспроизвести</strong> - начинает воспроизведение</li>
+                        <li><strong>🔁 Повтор</strong> - зацикливает текущий трек</li>
                         <li>Музыка играет в верхней панели на всех страницах</li>
-                        <li>Включите 🔁 Повтор для зацикливания трека</li>
                         <li>Воспроизведение сохраняется при перезагрузке страницы</li>
-                        <li>Поддерживаются все популярные аудиоформаты</li>
                     </ul>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+// Глобальные переменные для управления треками
+let currentTrackUrl = '';
+let currentTrackTitle = '';
+
+// Подготовка трека к воспроизведению (без автовоспроизведения)
+function prepareTrack(audioUrl, trackTitle) {
+    currentTrackUrl = audioUrl;
+    currentTrackTitle = trackTitle;
+    
+    // Загружаем трек в плеер
+    if (window.playGlobal) {
+        window.playGlobal(audioUrl, trackTitle);
+    }
+    
+    // Показываем уведомление
+    showNotification(`Трек "${trackTitle}" готов к воспроизведению`, 'success');
+}
+
+// Воспроизведение подготовленного трека
+function playPreparedTrack() {
+    if (currentTrackUrl && window.playPauseAudio) {
+        // Сначала убедимся что трек загружен
+        if (window.globalAudio && window.globalAudio.src === currentTrackUrl) {
+            window.playPauseAudio();
+        } else {
+            // Если трек не загружен, загружаем и воспроизводим
+            prepareTrack(currentTrackUrl, currentTrackTitle);
+            setTimeout(() => {
+                if (window.playPauseAudio) {
+                    window.playPauseAudio();
+                }
+            }, 500);
+        }
+    } else {
+        showNotification('Сначала подготовьте трек', 'warning');
+    }
+}
+
+// Показать уведомление
+function showNotification(message, type) {
+    // Создаем временное уведомление
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    // Автоматически удаляем через 3 секунды
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.parentNode.removeChild(alertDiv);
+        }
+    }, 3000);
+}
+
+// Обновление кнопки глобального управления
+function updateGlobalPlayButton() {
+    const globalBtn = document.getElementById('globalPlayPauseBtn');
+    if (globalBtn && window.globalAudio) {
+        if (window.globalAudio.paused || !window.globalAudio.src) {
+            globalBtn.textContent = '▶ Воспроизвести';
+            globalBtn.className = globalBtn.className.replace('btn-warning', 'btn-success');
+        } else {
+            globalBtn.textContent = '⏸ Пауза';
+            globalBtn.className = globalBtn.className.replace('btn-success', 'btn-warning');
+        }
+    }
+}
+
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    // Обновляем кнопку каждую секунду
+    setInterval(updateGlobalPlayButton, 1000);
+    
+    // Показываем статус плеера
+    if (window.globalAudio && window.globalAudio.src) {
+        showNotification('Плеер готов. Выберите трек для воспроизведения.', 'info');
+    }
+});
+</script>
 
 <style>
 .list-group-item {
