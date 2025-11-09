@@ -242,26 +242,41 @@
 
         // Кастомный аудио плеер - функции
         function handleProgressClick(event) {
-            if (globalAudio && globalAudio.duration) {
-                const progressContainer = document.getElementById('progressContainer');
-                const rect = progressContainer.getBoundingClientRect();
-                const clickX = event.clientX - rect.left;
-                const containerWidth = rect.width;
-                const percent = (clickX / containerWidth);
-                const newTime = percent * globalAudio.duration;
-                
-                globalAudio.currentTime = newTime;
-                
-                // Обновляем прогресс-бар сразу
-                const progressBar = document.getElementById('progressBar');
-                if (progressBar) {
-                    progressBar.style.width = (percent * 100) + '%';
-                }
-                
-                // Обновляем время
-                updateTimeDisplay();
-            }
+    if (globalAudio && globalAudio.duration) {
+        const progressContainer = document.getElementById('progressContainer');
+        if (!progressContainer) return;
+        
+        const rect = progressContainer.getBoundingClientRect();
+        const clickX = event.clientX - rect.left;
+        const containerWidth = rect.width;
+        
+        // Ограничиваем значения от 0 до ширины контейнера
+        const boundedX = Math.max(0, Math.min(clickX, containerWidth));
+        const percent = boundedX / containerWidth;
+        const newTime = percent * globalAudio.duration;
+        
+        console.log('Перемотка:', {
+            clickX: clickX,
+            containerWidth: containerWidth,
+            percent: percent,
+            newTime: newTime,
+            duration: globalAudio.duration
+        });
+        
+        globalAudio.currentTime = newTime;
+        
+        // Немедленно обновляем прогресс-бар
+        const progressBar = document.getElementById('progressBar');
+        if (progressBar) {
+            progressBar.style.width = (percent * 100) + '%';
         }
+        
+        // Немедленно обновляем время
+        updateTimeDisplay();
+    } else {
+        console.log('Аудио не загружено или нет длительности');
+    }
+}
 
         function playPauseAudio() {
             if (globalAudio) {
