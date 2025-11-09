@@ -22,6 +22,9 @@ from django.urls import path, include
 from calculator.views import grade_calculator, register
 from django.contrib.auth import views as auth_views
 from calculator.views import custom_logout
+from django.conf import settings
+from django.conf.urls.static import static
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -29,10 +32,13 @@ urlpatterns = [
     path('calendar/', include('calendar_app.urls')),
     path('calculator/', grade_calculator, name='grade_calculator'),
     path('accounts/register/', register, name='register'),
-    
+    path('music/', include('music_player.urls')),
     # ✅ ЕДИНСТВЕННЫЙ путь для выхода:
     path('accounts/logout/', custom_logout, name='logout'),
     
     # Остальные auth URLs
     path('accounts/', include('django.contrib.auth.urls')),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

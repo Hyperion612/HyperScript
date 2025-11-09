@@ -46,7 +46,8 @@ INSTALLED_APPS = [
     'todo.apps.TodoConfig',
     'notes.apps.NotesConfig',     
     'calculator.apps.CalculatorConfig',
-    'calendar_app'
+    'calendar_app',
+    'music_player',
 ]
 
 MIDDLEWARE = [
@@ -137,3 +138,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = '/static/'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

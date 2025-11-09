@@ -69,6 +69,12 @@
                     </a>
                 </li>
                 <li class="nav-item">
+    <a class="nav-link {% if 'music' in request.path %}active{% endif %}" 
+       href="{% url 'music_player' %}">
+        🎵 Музыка
+    </a>
+</li>
+                <li class="nav-item">
                     <a class="nav-link disabled" href="#">
                         🧮 Тренажер счета (скоро)
                     </a>
