@@ -48,6 +48,15 @@
                     </select>
                 </div>
             </div>
+
+            <!-- Кнопка Начать -->
+            <div class="card mt-4">
+                <div class="card-body">
+                    <button class="btn btn-success w-100" id="startGameBtn" disabled>
+                        🚀 Начать тренировку
+                    </button>
+                </div>
+            </div>
         </div>
 
         <div class="col-md-8">
@@ -60,7 +69,7 @@
                         <div class="py-5">
                             <i class="fas fa-brain fa-5x text-muted mb-4"></i>
                             <h3>Готовы проверить свои навыки?</h3>
-                            <p class="text-muted">Выберите математическую операцию чтобы начать</p>
+                            <p class="text-muted">Выберите математическую операцию и нажмите "Начать тренировку"</p>
                         </div>
                     </div>
 
@@ -93,7 +102,7 @@
                         </div>
 
                         <div id="questionPanel">
-                            <div class="display-4 mb-4" id="questionText"></div>
+                            <div class="display-4 mb-4" id="questionText">5 + 3</div>
                             <div class="row justify-content-center">
                                 <div class="col-md-6">
                                     <input type="number" class="form-control form-control-lg text-center" 
@@ -101,7 +110,8 @@
                                 </div>
                             </div>
                             <div class="mt-3">
-                                <button class="btn btn-primary btn-lg" id="submitAnswer">Проверить</button>
+                                <button class="btn btn-primary btn-lg" id="submitAnswer">✅ Проверить</button>
+                                <button class="btn btn-secondary btn-lg" id="nextQuestion" style="display: none;">➡️ Следующий</button>
                             </div>
                         </div>
                     </div>
@@ -114,59 +124,156 @@
 
 {% block extra_js %}
 <script>
-// Простой JavaScript для тренажера
 document.addEventListener('DOMContentLoaded', function() {
     const operationBtns = document.querySelectorAll('.operation-btn');
+    const startGameBtn = document.getElementById('startGameBtn');
     const startPanel = document.getElementById('startPanel');
     const gamePanel = document.getElementById('gamePanel');
     const gameTitle = document.getElementById('gameTitle');
     const questionText = document.getElementById('questionText');
     const answerInput = document.getElementById('answerInput');
     const submitBtn = document.getElementById('submitAnswer');
+    const nextBtn = document.getElementById('nextQuestion');
     
     let currentOperation = '';
     let currentQuestion = '';
     let currentAnswer = 0;
+    let score = 0, correct = 0, incorrect = 0;
+    let timer = 60;
+    let timerInterval;
     
+    // Обработчики выбора операции
     operationBtns.forEach(btn => {
         btn.addEventListener('click', function() {
+            // Сбрасываем активность всех кнопок
+            operationBtns.forEach(b => b.classList.remove('active', 'btn-primary', 'btn-success', 'btn-warning', 'btn-info'));
+            
+            // Активируем выбранную кнопку
+            this.classList.add('active');
+            if (this.dataset.operation === 'addition') this.classList.add('btn-primary');
+            if (this.dataset.operation === 'subtraction') this.classList.add('btn-success');
+            if (this.dataset.operation === 'multiplication') this.classList.add('btn-warning');
+            if (this.dataset.operation === 'division') this.classList.add('btn-info');
+            
             currentOperation = this.dataset.operation;
-            const operationNames = {
-                'addition': 'Сложение',
-                'subtraction': 'Вычитание', 
-                'multiplication': 'Умножение',
-                'division': 'Деление'
-            };
-            
-            gameTitle.textContent = `Тренажер: ${operationNames[currentOperation]}`;
-            startPanel.style.display = 'none';
-            gamePanel.style.display = 'block';
-            
-            generateQuestion();
+            startGameBtn.disabled = false;
+            startGameBtn.textContent = '🚀 Начать тренировку';
         });
     });
+    
+    // Обработчик кнопки "Начать"
+    startGameBtn.addEventListener('click', function() {
+        if (!currentOperation) {
+            alert('Пожалуйста, выберите операцию!');
+            return;
+        }
+        
+        const operationNames = {
+            'addition': 'Сложение',
+            'subtraction': 'Вычитание', 
+            'multiplication': 'Умножение',
+            'division': 'Деление'
+        };
+        
+        gameTitle.textContent = `Тренажер: ${operationNames[currentOperation]}`;
+        startPanel.style.display = 'none';
+        gamePanel.style.display = 'block';
+        
+        // Сбрасываем статистику
+        score = 0; correct = 0; incorrect = 0; timer = 60;
+        updateStats();
+        
+        // Запускаем таймер
+        startTimer();
+        
+        // Генерируем первый вопрос
+        generateQuestion();
+    });
+    
+    function startTimer() {
+        clearInterval(timerInterval);
+        timerInterval = setInterval(function() {
+            timer--;
+            document.getElementById('timer').textContent = timer;
+            
+            if (timer <= 0) {
+                clearInterval(timerInterval);
+                endGame();
+            }
+        }, 1000);
+    }
+    
+    function updateStats() {
+        document.getElementById('score').textContent = score;
+        document.getElementById('correct').textContent = correct;
+        document.getElementById('incorrect').textContent = incorrect;
+        document.getElementById('timer').textContent = timer;
+    }
     
     function generateQuestion() {
         const difficulty = document.getElementById('difficultySelect').value;
         
         fetch(`/math/operation/${currentOperation}/?difficulty=${difficulty}`)
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) throw new Error('Network error');
+                return response.json();
+            })
             .then(data => {
                 questionText.textContent = data.question;
                 currentAnswer = data.answer;
                 answerInput.value = '';
                 answerInput.focus();
+                
+                submitBtn.style.display = 'inline-block';
+                nextBtn.style.display = 'none';
             })
             .catch(error => {
                 console.error('Error:', error);
-                questionText.textContent = 'Ошибка загрузки вопроса';
+                // Если API не работает, генерируем вопрос локально
+                generateLocalQuestion();
             });
     }
     
-    submitBtn.addEventListener('click', checkAnswer);
-    answerInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') checkAnswer();
-    });
+    function generateLocalQuestion() {
+        const difficulty = document.getElementById('difficultySelect').value;
+        let a, b;
+        
+        if (difficulty === 'easy') {
+            a = Math.floor(Math.random() * 10) + 1;
+            b = Math.floor(Math.random() * 10) + 1;
+        } else if (difficulty === 'medium') {
+            a = Math.floor(Math.random() * 40) + 10;
+            b = Math.floor(Math.random() * 40) + 10;
+        } else {
+            a = Math.floor(Math.random() * 50) + 50;
+            b = Math.floor(Math.random() * 50) + 50;
+        }
+        
+        if (currentOperation === 'addition') {
+            questionText.textContent = `${a} + ${b}`;
+            currentAnswer = a + b;
+        } else if (currentOperation === 'subtraction') {
+            const max = Math.max(a, b);
+            const min = Math.min(a, b);
+            questionText.textContent = `${max} - ${min}`;
+            currentAnswer = max - min;
+        } else if (currentOperation === 'multiplication') {
+            a = Math.floor(Math.random() * 10) + 1;
+            b = Math.floor(Math.random() * 10) + 1;
+            questionText.textContent = `${a} × ${b}`;
+            currentAnswer = a * b;
+        } else if (currentOperation === 'division') {
+            b = Math.floor(Math.random() * 10) + 1;
+            a = b * (Math.floor(Math.random() * 10) + 1);
+            questionText.textContent = `${a} ÷ ${b}`;
+            currentAnswer = a / b;
+        }
+        
+        answerInput.value = '';
+        answerInput.focus();
+        submitBtn.style.display = 'inline-block';
+        nextBtn.style.display = 'none';
+    }
     
     function checkAnswer() {
         const userAnswer = parseInt(answerInput.value);
@@ -177,14 +284,46 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         if (userAnswer === currentAnswer) {
-            alert('Правильно! 🎉');
+            score += 10;
+            correct++;
+            questionText.innerHTML = '✅ <span class="text-success">Правильно!</span>';
         } else {
-            alert(`Неправильно! Правильный ответ: ${currentAnswer}`);
+            incorrect++;
+            questionText.innerHTML = `❌ <span class="text-danger">Неправильно! Правильно: ${currentAnswer}</span>`;
         }
         
-        // Следующий вопрос
-        setTimeout(generateQuestion, 1000);
+        updateStats();
+        submitBtn.style.display = 'none';
+        nextBtn.style.display = 'inline-block';
     }
+    
+    function endGame() {
+        questionText.innerHTML = `🏁 <strong>Время вышло!</strong><br>Ваш счет: ${score}`;
+        answerInput.style.display = 'none';
+        submitBtn.style.display = 'none';
+        nextBtn.style.display = 'none';
+        
+        // Сохраняем результат
+        saveScore();
+    }
+    
+    function saveScore() {
+        // Здесь можно добавить сохранение результатов
+        console.log('Game finished:', { score, correct, incorrect, operation: currentOperation });
+    }
+    
+    submitBtn.addEventListener('click', checkAnswer);
+    nextBtn.addEventListener('click', generateQuestion);
+    answerInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') checkAnswer();
+    });
 });
 </script>
+
+<style>
+.operation-btn.active {
+    font-weight: bold;
+    transform: scale(1.05);
+}
+</style>
 {% endblock %}

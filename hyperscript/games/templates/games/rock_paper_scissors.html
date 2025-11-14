@@ -11,6 +11,7 @@
                     <h3 class="card-title mb-0">🎮 Камень-Ножницы-Бумага</h3>
                 </div>
                 <div class="card-body text-center">
+                    <!-- Статистика -->
                     <div class="row mb-4">
                         <div class="col-4">
                             <div class="border rounded p-2">
@@ -32,48 +33,86 @@
                         </div>
                     </div>
 
+                    <!-- Кнопка Начать -->
                     <div class="mb-4">
-                        <h5>Выберите ваш ход:</h5>
-                        <div class="btn-group btn-group-lg" role="group">
-                            <button type="button" class="btn btn-outline-primary choice-btn" data-choice="rock">
-                                ✊ Камень
-                            </button>
-                            <button type="button" class="btn btn-outline-success choice-btn" data-choice="paper">
-                                ✋ Бумага
-                            </button>
-                            <button type="button" class="btn btn-outline-warning choice-btn" data-choice="scissors">
-                                ✌️ Ножницы
-                            </button>
+                        <button class="btn btn-success btn-lg" id="startGameBtn">
+                            🚀 Начать игру
+                        </button>
+                    </div>
+
+                    <!-- Выбор хода (изначально скрыт) -->
+                    <div id="gameArea" style="display: none;">
+                        <div class="mb-4">
+                            <h5>Выберите ваш ход:</h5>
+                            <div class="btn-group btn-group-lg" role="group">
+                                <button type="button" class="btn btn-outline-primary choice-btn" data-choice="rock">
+                                    ✊ Камень
+                                </button>
+                                <button type="button" class="btn btn-outline-success choice-btn" data-choice="paper">
+                                    ✋ Бумага
+                                </button>
+                                <button type="button" class="btn btn-outline-warning choice-btn" data-choice="scissors">
+                                    ✌️ Ножницы
+                                </button>
+                            </div>
                         </div>
                     </div>
 
+                    <!-- Результат раунда -->
                     <div id="resultArea" style="display: none;">
                         <div class="row align-items-center mb-4">
                             <div class="col-5 text-end">
-                                <div class="h4" id="userChoice"></div>
-                                <small>Вы</small>
+                                <div class="h3" id="userChoiceDisplay"></div>
+                                <small>Ваш ход</small>
                             </div>
                             <div class="col-2">
-                                <div class="h3">VS</div>
+                                <div class="h4 text-muted">VS</div>
                             </div>
                             <div class="col-5 text-start">
-                                <div class="h4" id="computerChoice"></div>
+                                <div class="h3" id="computerChoiceDisplay"></div>
                                 <small>Компьютер</small>
                             </div>
                         </div>
 
-                        <div class="alert" id="resultAlert">
+                        <div class="alert mb-4" id="resultAlert">
                             <h4 id="resultText" class="mb-0"></h4>
                         </div>
 
-                        <button class="btn btn-primary btn-lg mt-3" id="playAgain">Играть снова</button>
+                        <div class="d-grid gap-2 d-md-block">
+                            <button class="btn btn-primary btn-lg me-2" id="playAgainBtn">
+                                🔄 Играть снова
+                            </button>
+                            <button class="btn btn-outline-secondary btn-lg" id="backToMenuBtn">
+                                📋 В меню
+                            </button>
+                        </div>
                     </div>
 
+                    <!-- Стартовый экран -->
                     <div id="startArea">
                         <div class="py-4">
                             <i class="fas fa-hand-rock fa-4x text-muted mb-3"></i>
-                            <h4>Сделайте ваш выбор!</h4>
-                            <p class="text-muted">Выберите камень, ножницы или бумагу чтобы начать игру</p>
+                            <h4>Готовы сыграть?</h4>
+                            <p class="text-muted">Нажмите "Начать игру" чтобы сыграть в классическую игру против компьютера</p>
+                            <div class="mt-4">
+                                <div class="row text-center">
+                                    <div class="col-4">
+                                        <i class="fas fa-robot text-primary fa-2x mb-2"></i>
+                                        <div class="fw-bold">Против ИИ</div>
+                                        <small class="text-muted">Умный компьютер</small>
+                                    </div>
+                                    <div class="col-4">
+                                        <i class="fas fa-trophy text-warning fa-2x mb-2"></i>
+                                        <div class="fw-bold">Бесконечно</div>
+                                        <small class="text-muted">Сколько угодно раундов</small>
+                                    </div>
+                                    <div class="col-4">
+                                        <i class="fas fa-chart-line text-success fa-2x mb-2"></i>
+                                        <div class="fw-bold">Статистика</div>
+                                        <small class="text-muted">Следите за прогрессом</small>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -86,42 +125,80 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const choiceBtns = document.querySelectorAll('.choice-btn');
-    const startArea = document.getElementById('startArea');
+    // Элементы интерфейса
+    const startGameBtn = document.getElementById('startGameBtn');
+    const gameArea = document.getElementById('gameArea');
     const resultArea = document.getElementById('resultArea');
-    const userChoiceEl = document.getElementById('userChoice');
-    const computerChoiceEl = document.getElementById('computerChoice');
+    const startArea = document.getElementById('startArea');
+    const choiceBtns = document.querySelectorAll('.choice-btn');
+    const playAgainBtn = document.getElementById('playAgainBtn');
+    const backToMenuBtn = document.getElementById('backToMenuBtn');
+    
+    // Элементы результатов
+    const userChoiceDisplay = document.getElementById('userChoiceDisplay');
+    const computerChoiceDisplay = document.getElementById('computerChoiceDisplay');
     const resultAlert = document.getElementById('resultAlert');
     const resultText = document.getElementById('resultText');
-    const playAgainBtn = document.getElementById('playAgain');
+    
+    // Элементы статистики
     const winsEl = document.getElementById('wins');
     const lossesEl = document.getElementById('losses');
     const drawsEl = document.getElementById('draws');
     
+    // Переменные игры
     let wins = 0, losses = 0, draws = 0;
+    let gameStarted = false;
     
+    // Обработчик кнопки "Начать игру"
+    startGameBtn.addEventListener('click', function() {
+        startGame();
+    });
+    
+    // Обработчики выбора хода
     choiceBtns.forEach(btn => {
         btn.addEventListener('click', function() {
+            if (!gameStarted) return;
+            
             const userChoice = this.dataset.choice;
             playRound(userChoice);
         });
     });
     
+    // Обработчики кнопок в результатах
     playAgainBtn.addEventListener('click', function() {
-        startArea.style.display = 'block';
-        resultArea.style.display = 'none';
+        showGameArea();
     });
     
+    backToMenuBtn.addEventListener('click', function() {
+        resetToStart();
+    });
+    
+    function startGame() {
+        gameStarted = true;
+        startArea.style.display = 'none';
+        startGameBtn.style.display = 'none';
+        gameArea.style.display = 'block';
+        resultArea.style.display = 'none';
+        
+        // Сброс статистики при новом запуске
+        wins = 0; losses = 0; draws = 0;
+        updateStats();
+    }
+    
     function playRound(userChoice) {
+        // Возможные ходы
         const choices = ['rock', 'paper', 'scissors'];
+        
+        // Случайный выбор компьютера
         const computerChoice = choices[Math.floor(Math.random() * 3)];
         
         // Определяем победителя
-        let result, message;
+        let result, message, alertClass;
         
         if (userChoice === computerChoice) {
             result = 'draw';
-            message = 'Ничья!';
+            message = '🤝 Ничья!';
+            alertClass = 'alert-warning';
             draws++;
         } else if (
             (userChoice === 'rock' && computerChoice === 'scissors') ||
@@ -129,17 +206,21 @@ document.addEventListener('DOMContentLoaded', function() {
             (userChoice === 'paper' && computerChoice === 'rock')
         ) {
             result = 'win';
-            message = 'Вы победили! 🎉';
+            message = '🎉 Вы победили!';
+            alertClass = 'alert-success';
             wins++;
         } else {
             result = 'lose';
-            message = 'Компьютер победил! 💻';
+            message = '💻 Компьютер победил!';
+            alertClass = 'alert-danger';
             losses++;
         }
         
-        // Обновляем интерфейс
+        // Обновляем статистику
         updateStats();
-        displayResult(userChoice, computerChoice, result, message);
+        
+        // Показываем результат
+        showResult(userChoice, computerChoice, message, alertClass);
     }
     
     function updateStats() {
@@ -148,29 +229,69 @@ document.addEventListener('DOMContentLoaded', function() {
         drawsEl.textContent = draws;
     }
     
-    function displayResult(userChoice, computerChoice, result, message) {
+    function showResult(userChoice, computerChoice, message, alertClass) {
+        // Отображаем выборы
         const choiceNames = {
             'rock': '✊ Камень',
             'paper': '✋ Бумага', 
             'scissors': '✌️ Ножницы'
         };
         
-        userChoiceEl.textContent = choiceNames[userChoice];
-        computerChoiceEl.textContent = choiceNames[computerChoice];
+        userChoiceDisplay.textContent = choiceNames[userChoice];
+        computerChoiceDisplay.textContent = choiceNames[computerChoice];
         
-        if (result === 'win') {
-            resultAlert.className = 'alert alert-success';
-        } else if (result === 'lose') {
-            resultAlert.className = 'alert alert-danger';
-        } else {
-            resultAlert.className = 'alert alert-warning';
-        }
-        
+        // Настраиваем алерт
+        resultAlert.className = `alert ${alertClass}`;
         resultText.textContent = message;
         
-        startArea.style.display = 'none';
+        // Переключаем экраны
+        gameArea.style.display = 'none';
         resultArea.style.display = 'block';
     }
+    
+    function showGameArea() {
+        gameArea.style.display = 'block';
+        resultArea.style.display = 'none';
+    }
+    
+    function resetToStart() {
+        gameStarted = false;
+        startArea.style.display = 'block';
+        startGameBtn.style.display = 'block';
+        gameArea.style.display = 'none';
+        resultArea.style.display = 'none';
+    }
+    
+    // Анимация для кнопок выбора
+    choiceBtns.forEach(btn => {
+        btn.addEventListener('mouseenter', function() {
+            this.style.transform = 'scale(1.05)';
+        });
+        
+        btn.addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1)';
+        });
+    });
 });
 </script>
+
+<style>
+.choice-btn {
+    transition: all 0.2s ease;
+    min-width: 120px;
+}
+
+.choice-btn:hover {
+    transform: scale(1.05);
+}
+
+#userChoiceDisplay, #computerChoiceDisplay {
+    font-size: 2.5rem;
+}
+
+.alert {
+    border: none;
+    border-radius: 15px;
+}
+</style>
 {% endblock %}
