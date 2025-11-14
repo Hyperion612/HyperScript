@@ -4,132 +4,106 @@
 {% block title %}Тренажер счета - HyperScript{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <h1 class="mb-4">
-            <i class="fas fa-brain me-2"></i>Тренажер устного счета
-        </h1>
-        <p class="lead">Тренируйте математические навыки и улучшайте скорость счета</p>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">🧮 Тренажер устного счета</h1>
+            <p class="lead">Тренируйте математические навыки и улучшайте скорость счета</p>
+        </div>
     </div>
-</div>
 
-<div class="row mt-4">
-    <!-- Выбор операции -->
-    <div class="col-md-4 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="fas fa-calculator me-2"></i>Выберите операцию
-                </h5>
+    <div class="row mt-4">
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Выберите операцию</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary operation-btn" data-operation="addition">
+                            ➕ Сложение
+                        </button>
+                        <button class="btn btn-outline-success operation-btn" data-operation="subtraction">
+                            ➖ Вычитание
+                        </button>
+                        <button class="btn btn-outline-warning operation-btn" data-operation="multiplication">
+                            ✖️ Умножение
+                        </button>
+                        <button class="btn btn-outline-info operation-btn" data-operation="division">
+                            ➗ Деление
+                        </button>
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
-                <div class="d-grid gap-2">
-                    <button class="btn btn-outline-primary operation-btn" data-operation="addition">
-                        <i class="fas fa-plus me-2"></i>Сложение
-                    </button>
-                    <button class="btn btn-outline-success operation-btn" data-operation="subtraction">
-                        <i class="fas fa-minus me-2"></i>Вычитание
-                    </button>
-                    <button class="btn btn-outline-warning operation-btn" data-operation="multiplication">
-                        <i class="fas fa-times me-2"></i>Умножение
-                    </button>
-                    <button class="btn btn-outline-info operation-btn" data-operation="division">
-                        <i class="fas fa-divide me-2"></i>Деление
-                    </button>
+
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Сложность</h5>
+                </div>
+                <div class="card-body">
+                    <select class="form-select" id="difficultySelect">
+                        <option value="easy">Легкая (1-10)</option>
+                        <option value="medium">Средняя (10-50)</option>
+                        <option value="hard">Сложная (50-100)</option>
+                    </select>
                 </div>
             </div>
         </div>
 
-        <!-- Выбор сложности -->
-        <div class="card mt-4">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="fas fa-sliders-h me-2"></i>Сложность
-                </h5>
-            </div>
-            <div class="card-body">
-                <select class="form-select" id="difficultySelect">
-                    <option value="easy">Легкая (1-10)</option>
-                    <option value="medium">Средняя (10-50)</option>
-                    <option value="hard">Сложная (50-100)</option>
-                </select>
-            </div>
-        </div>
-    </div>
-
-    <!-- Игровая область -->
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0" id="gameTitle">
-                    <i class="fas fa-play-circle me-2"></i>Выберите операцию для начала
-                </h5>
-            </div>
-            <div class="card-body text-center">
-                <!-- Статистика -->
-                <div class="row mb-4" id="statsPanel" style="display: none;">
-                    <div class="col-3">
-                        <div class="border rounded p-2">
-                            <small class="text-muted">Счет</small>
-                            <div class="h4 mb-0" id="score">0</div>
-                        </div>
-                    </div>
-                    <div class="col-3">
-                        <div class="border rounded p-2">
-                            <small class="text-muted">Правильно</small>
-                            <div class="h4 mb-0 text-success" id="correct">0</div>
-                        </div>
-                    </div>
-                    <div class="col-3">
-                        <div class="border rounded p-2">
-                            <small class="text-muted">Неправильно</small>
-                            <div class="h4 mb-0 text-danger" id="incorrect">0</div>
-                        </div>
-                    </div>
-                    <div class="col-3">
-                        <div class="border rounded p-2">
-                            <small class="text-muted">Время</small>
-                            <div class="h4 mb-0" id="timer">60</div>
-                        </div>
-                    </div>
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0" id="gameTitle">Выберите операцию для начала</h5>
                 </div>
-
-                <!-- Вопрос -->
-                <div id="questionPanel" style="display: none;">
-                    <div class="display-1 mb-4" id="questionText">5 + 3</div>
-                    <div class="row justify-content-center">
-                        <div class="col-md-6">
-                            <input type="number" class="form-control form-control-lg text-center" 
-                                   id="answerInput" placeholder="Ваш ответ" autofocus>
+                <div class="card-body text-center">
+                    <div id="startPanel">
+                        <div class="py-5">
+                            <i class="fas fa-brain fa-5x text-muted mb-4"></i>
+                            <h3>Готовы проверить свои навыки?</h3>
+                            <p class="text-muted">Выберите математическую операцию чтобы начать</p>
                         </div>
                     </div>
-                    <div class="mt-3">
-                        <button class="btn btn-primary btn-lg" id="submitAnswer">
-                            <i class="fas fa-check me-2"></i>Проверить
-                        </button>
-                        <button class="btn btn-secondary btn-lg" id="nextQuestion" style="display: none;">
-                            <i class="fas fa-arrow-right me-2"></i>Далее
-                        </button>
-                    </div>
-                </div>
 
-                <!-- Результат -->
-                <div id="resultPanel" style="display: none;">
-                    <div class="alert" id="resultAlert">
-                        <h4 id="resultText"></h4>
-                        <p id="resultMessage"></p>
-                    </div>
-                    <button class="btn btn-success btn-lg" id="restartGame">
-                        <i class="fas fa-redo me-2"></i>Играть снова
-                    </button>
-                </div>
+                    <div id="gamePanel" style="display: none;">
+                        <div class="row mb-4">
+                            <div class="col-3">
+                                <div class="border rounded p-2">
+                                    <small>Счет</small>
+                                    <div class="h4 mb-0" id="score">0</div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="border rounded p-2">
+                                    <small>Правильно</small>
+                                    <div class="h4 mb-0 text-success" id="correct">0</div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="border rounded p-2">
+                                    <small>Ошибки</small>
+                                    <div class="h4 mb-0 text-danger" id="incorrect">0</div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="border rounded p-2">
+                                    <small>Время</small>
+                                    <div class="h4 mb-0" id="timer">60</div>
+                                </div>
+                            </div>
+                        </div>
 
-                <!-- Начальный экран -->
-                <div id="startPanel">
-                    <div class="py-5">
-                        <i class="fas fa-brain fa-5x text-muted mb-4"></i>
-                        <h3>Готовы проверить свои навыки?</h3>
-                        <p class="text-muted">Выберите математическую операцию выше чтобы начать</p>
+                        <div id="questionPanel">
+                            <div class="display-4 mb-4" id="questionText"></div>
+                            <div class="row justify-content-center">
+                                <div class="col-md-6">
+                                    <input type="number" class="form-control form-control-lg text-center" 
+                                           id="answerInput" placeholder="Ваш ответ" autofocus>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <button class="btn btn-primary btn-lg" id="submitAnswer">Проверить</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -140,231 +114,77 @@
 
 {% block extra_js %}
 <script>
-class MathTrainer {
-    constructor() {
-        this.score = 0;
-        this.correct = 0;
-        this.incorrect = 0;
-        this.timeLeft = 60;
-        this.timer = null;
-        this.currentOperation = null;
-        this.currentQuestion = null;
-        this.currentAnswer = null;
-        this.isGameActive = false;
-        
-        this.initializeEventListeners();
-    }
+// Простой JavaScript для тренажера
+document.addEventListener('DOMContentLoaded', function() {
+    const operationBtns = document.querySelectorAll('.operation-btn');
+    const startPanel = document.getElementById('startPanel');
+    const gamePanel = document.getElementById('gamePanel');
+    const gameTitle = document.getElementById('gameTitle');
+    const questionText = document.getElementById('questionText');
+    const answerInput = document.getElementById('answerInput');
+    const submitBtn = document.getElementById('submitAnswer');
     
-    initializeEventListeners() {
-        // Кнопки операций
-        document.querySelectorAll('.operation-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                this.startGame(e.target.dataset.operation);
-            });
-        });
-        
-        // Отправка ответа
-        document.getElementById('submitAnswer').addEventListener('click', () => {
-            this.checkAnswer();
-        });
-        
-        // Следующий вопрос
-        document.getElementById('nextQuestion').addEventListener('click', () => {
-            this.nextQuestion();
-        });
-        
-        // Рестарт игры
-        document.getElementById('restartGame').addEventListener('click', () => {
-            this.restartGame();
-        });
-        
-        // Enter для отправки ответа
-        document.getElementById('answerInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                this.checkAnswer();
-            }
-        });
-    }
+    let currentOperation = '';
+    let currentQuestion = '';
+    let currentAnswer = 0;
     
-    async startGame(operation) {
-        this.currentOperation = operation;
-        this.resetGame();
-        
-        // Показываем игровую панель
-        document.getElementById('startPanel').style.display = 'none';
-        document.getElementById('statsPanel').style.display = 'flex';
-        document.getElementById('questionPanel').style.display = 'block';
-        document.getElementById('resultPanel').style.display = 'none';
-        
-        // Обновляем заголовок
-        const operationNames = {
-            'addition': 'Сложение',
-            'subtraction': 'Вычитание', 
-            'multiplication': 'Умножение',
-            'division': 'Деление'
-        };
-        document.getElementById('gameTitle').innerHTML = 
-            `<i class="fas fa-play-circle me-2"></i>${operationNames[operation]}`;
-        
-        this.isGameActive = true;
-        this.startTimer();
-        await this.nextQuestion();
-    }
+    operationBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            currentOperation = this.dataset.operation;
+            const operationNames = {
+                'addition': 'Сложение',
+                'subtraction': 'Вычитание', 
+                'multiplication': 'Умножение',
+                'division': 'Деление'
+            };
+            
+            gameTitle.textContent = `Тренажер: ${operationNames[currentOperation]}`;
+            startPanel.style.display = 'none';
+            gamePanel.style.display = 'block';
+            
+            generateQuestion();
+        });
+    });
     
-    async nextQuestion() {
-        if (!this.isGameActive) return;
-        
+    function generateQuestion() {
         const difficulty = document.getElementById('difficultySelect').value;
         
-        try {
-            const response = await fetch(`/math/operation/${this.currentOperation}/?difficulty=${difficulty}`);
-            const data = await response.json();
-            
-            this.currentQuestion = data.question;
-            this.currentAnswer = data.answer;
-            
-            document.getElementById('questionText').textContent = this.currentQuestion;
-            document.getElementById('answerInput').value = '';
-            document.getElementById('answerInput').focus();
-            
-            document.getElementById('submitAnswer').style.display = 'inline-block';
-            document.getElementById('nextQuestion').style.display = 'none';
-            
-        } catch (error) {
-            console.error('Error fetching question:', error);
-        }
+        fetch(`/math/operation/${currentOperation}/?difficulty=${difficulty}`)
+            .then(response => response.json())
+            .then(data => {
+                questionText.textContent = data.question;
+                currentAnswer = data.answer;
+                answerInput.value = '';
+                answerInput.focus();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                questionText.textContent = 'Ошибка загрузки вопроса';
+            });
     }
     
-    checkAnswer() {
-        const userAnswer = parseInt(document.getElementById('answerInput').value);
+    submitBtn.addEventListener('click', checkAnswer);
+    answerInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') checkAnswer();
+    });
+    
+    function checkAnswer() {
+        const userAnswer = parseInt(answerInput.value);
         
         if (isNaN(userAnswer)) {
             alert('Пожалуйста, введите число');
             return;
         }
         
-        if (userAnswer === this.currentAnswer) {
-            this.score += 10;
-            this.correct++;
-            this.showResult(true, 'Правильно! 🎉');
+        if (userAnswer === currentAnswer) {
+            alert('Правильно! 🎉');
         } else {
-            this.incorrect++;
-            this.showResult(false, `Неправильно! Правильный ответ: ${this.currentAnswer}`);
+            alert(`Неправильно! Правильный ответ: ${currentAnswer}`);
         }
         
-        this.updateStats();
-        
-        document.getElementById('submitAnswer').style.display = 'none';
-        document.getElementById('nextQuestion').style.display = 'inline-block';
+        // Следующий вопрос
+        setTimeout(generateQuestion, 1000);
     }
-    
-    showResult(isCorrect, message) {
-        const alert = document.getElementById('resultAlert');
-        const resultText = document.getElementById('resultText');
-        const resultMessage = document.getElementById('resultMessage');
-        
-        if (isCorrect) {
-            alert.className = 'alert alert-success';
-            resultText.innerHTML = '<i class="fas fa-check-circle me-2"></i>Верно!';
-        } else {
-            alert.className = 'alert alert-danger'; 
-            resultText.innerHTML = '<i class="fas fa-times-circle me-2"></i>Неверно!';
-        }
-        
-        resultMessage.textContent = message;
-        
-        // Показываем временный результат
-        document.getElementById('questionPanel').style.display = 'none';
-        document.getElementById('resultPanel').style.display = 'block';
-    }
-    
-    updateStats() {
-        document.getElementById('score').textContent = this.score;
-        document.getElementById('correct').textContent = this.correct;
-        document.getElementById('incorrect').textContent = this.incorrect;
-    }
-    
-    startTimer() {
-        this.timeLeft = 60;
-        document.getElementById('timer').textContent = this.timeLeft;
-        
-        this.timer = setInterval(() => {
-            this.timeLeft--;
-            document.getElementById('timer').textContent = this.timeLeft;
-            
-            if (this.timeLeft <= 0) {
-                this.endGame();
-            }
-        }, 1000);
-    }
-    
-    endGame() {
-        this.isGameActive = false;
-        clearInterval(this.timer);
-        
-        // Сохраняем результат
-        this.saveScore();
-        
-        // Показываем финальный результат
-        document.getElementById('questionPanel').style.display = 'none';
-        document.getElementById('resultPanel').style.display = 'block';
-        
-        const accuracy = this.correct + this.incorrect > 0 ? 
-            (this.correct / (this.correct + this.incorrect)) * 100 : 0;
-            
-        document.getElementById('resultAlert').className = 'alert alert-info';
-        document.getElementById('resultText').innerHTML = 
-            '<i class="fas fa-flag-checkered me-2"></i>Время вышло!';
-        document.getElementById('resultMessage').innerHTML = `
-            <strong>Итоговый счет:</strong> ${this.score}<br>
-            <strong>Правильных ответов:</strong> ${this.correct}<br>
-            <strong>Точность:</strong> ${accuracy.toFixed(1)}%<br>
-            <strong>Время:</strong> 60 секунд
-        `;
-    }
-    
-    async saveScore() {
-        try {
-            const response = await fetch('/math/save-score/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}'
-                },
-                body: JSON.stringify({
-                    operation: this.currentOperation,
-                    difficulty: document.getElementById('difficultySelect').value,
-                    score: this.score,
-                    total_questions: this.correct + this.incorrect,
-                    correct_answers: this.correct,
-                    time_spent: 60 - this.timeLeft
-                })
-            });
-        } catch (error) {
-            console.error('Error saving score:', error);
-        }
-    }
-    
-    resetGame() {
-        this.score = 0;
-        this.correct = 0;
-        this.incorrect = 0;
-        this.timeLeft = 60;
-        this.updateStats();
-        
-        if (this.timer) {
-            clearInterval(this.timer);
-        }
-    }
-    
-    restartGame() {
-        this.startGame(this.currentOperation);
-    }
-}
-
-// Инициализация при загрузке страницы
-document.addEventListener('DOMContentLoaded', function() {
-    window.mathTrainer = new MathTrainer();
 });
 </script>
 {% endblock %}

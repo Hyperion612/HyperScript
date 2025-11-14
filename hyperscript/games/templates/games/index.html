@@ -3,48 +3,45 @@
 {% block title %}Игры - HyperScript{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <h1 class="mb-4">
-            <i class="fas fa-gamepad me-2"></i>Игры
-        </h1>
-        <p class="lead">Отдохните и развлекитесь с нашими играми</p>
-    </div>
-</div>
-
-<div class="row mt-4">
-    <!-- Камень-Ножницы-Бумага -->
-    <div class="col-md-6 col-lg-4 mb-4">
-        <div class="card app-card h-100">
-            <div class="card-body text-center">
-                <i class="fas fa-hand-rock fa-3x text-primary mb-3"></i>
-                <h5 class="card-title">Камень-Ножницы-Бумага</h5>
-                <p class="card-text">Классическая игра против компьютера</p>
-                <a href="{% url 'rock_paper_scissors' %}" class="btn btn-primary">Играть</a>
-            </div>
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">🎮 Игры</h1>
+            <p class="lead">Отдохните и развлекитесь с нашими играми</p>
         </div>
     </div>
 
-    <!-- Виселица (заглушка) -->
-    <div class="col-md-6 col-lg-4 mb-4">
-        <div class="card app-card h-100">
-            <div class="card-body text-center">
-                <i class="fas fa-ghost fa-3x text-success mb-3"></i>
-                <h5 class="card-title">Виселица</h5>
-                <p class="card-text">Угадайте слово по буквам</p>
-                <button class="btn btn-success" disabled>Скоро</button>
+    <div class="row mt-4">
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-hand-rock fa-3x text-primary mb-3"></i>
+                    <h5 class="card-title">Камень-Ножницы-Бумага</h5>
+                    <p class="card-text">Классическая игра против компьютера</p>
+                    <a href="{% url 'rock_paper_scissors' %}" class="btn btn-primary">Играть</a>
+                </div>
             </div>
         </div>
-    </div>
-
-    <!-- 2048 (заглушка) -->
-    <div class="col-md-6 col-lg-4 mb-4">
-        <div class="card app-card h-100">
-            <div class="card-body text-center">
-                <i class="fas fa-th fa-3x text-warning mb-3"></i>
-                <h5 class="card-title">2048</h5>
-                <p class="card-text">Объединяйте числа чтобы получить 2048</p>
-                <button class="btn btn-warning" disabled>Скоро</button>
+        
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-ghost fa-3x text-success mb-3"></i>
+                    <h5 class="card-title">Виселица</h5>
+                    <p class="card-text">Угадайте слово по буквам</p>
+                    <button class="btn btn-success" disabled>Скоро</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-th fa-3x text-warning mb-3"></i>
+                    <h5 class="card-title">2048</h5>
+                    <p class="card-text">Объединяйте числа чтобы получить 2048</p>
+                    <button class="btn btn-warning" disabled>Скоро</button>
+                </div>
             </div>
         </div>
     </div>
