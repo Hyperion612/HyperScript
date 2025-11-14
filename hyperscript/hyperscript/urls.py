@@ -16,29 +16,38 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from django.contrib import admin
-from django.contrib import admin
-from django.urls import path, include
-from calculator.views import grade_calculator, register
-from django.contrib.auth import views as auth_views
-from calculator.views import custom_logout
 from django.conf import settings
 from django.conf.urls.static import static
-
+from django.views.generic import TemplateView
+from calculator.views import grade_calculator, register, custom_logout
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('todo.urls')),
+    
+    # Главная страница
+    path('', TemplateView.as_view(template_name='home.html'), name='home'),
+    
+    # Существующие приложения
+    path('tasks/', include('todo.urls')),
     path('calendar/', include('calendar_app.urls')),
     path('calculator/', grade_calculator, name='grade_calculator'),
-    path('accounts/register/', register, name='register'),
     path('music/', include('music_player.urls')),
-    # ✅ ЕДИНСТВЕННЫЙ путь для выхода:
-    path('accounts/logout/', custom_logout, name='logout'),
     
-    # Остальные auth URLs
+    # НОВЫЕ ПРИЛОЖЕНИЯ
+    path('math/', include('math_trainer.urls')),
+    path('games/', include('games.urls')),
+    
+    # Аутентификация
+    path('accounts/register/', register, name='register'),
+    path('accounts/logout/', custom_logout, name='logout'),
     path('accounts/', include('django.contrib.auth.urls')),
+    
+    # Дополнительные страницы
+    path('profile/', TemplateView.as_view(template_name='profile.html'), name='profile'),
+    path('settings/', TemplateView.as_view(template_name='settings.html'), name='settings'),
 ]
 
+# Serving media files in development
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

@@ -48,6 +48,8 @@ INSTALLED_APPS = [
     'calculator.apps.CalculatorConfig',
     'calendar_app',
     'music_player',
+    'math_trainer',
+    'games',
 ]
 
 MIDDLEWARE = [

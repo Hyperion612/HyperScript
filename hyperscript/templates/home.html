@@ -25,17 +25,21 @@
                 <div class="card-body p-4">
                     <h5>📊 Статистика платформы</h5>
                     <div class="row text-center">
-                        <div class="col-4">
+                        <div class="col-3">
                             <div class="h4 text-primary">{{ user.task_set.count|default:"0" }}</div>
                             <small>Ваши задачи</small>
                         </div>
-                        <div class="col-4">
+                        <div class="col-3">
                             <div class="h4 text-success">{{ user.musictrack_set.count|default:"0" }}</div>
                             <small>Ваши треки</small>
                         </div>
-                        <div class="col-4">
-                            <div class="h4 text-info">4</div>
-                            <small>Доступных приложений</small>
+                        <div class="col-3">
+                            <div class="h4 text-warning">{{ user.math_scores.count|default:"0" }}</div>
+                            <small>Тренировки</small>
+                        </div>
+                        <div class="col-3">
+                            <div class="h4 text-info">6</div>
+                            <small>Приложений</small>
                         </div>
                     </div>
                 </div>
@@ -96,8 +100,8 @@
                 <div class="card-body text-center">
                     <div class="h1 mb-3">🧮</div>
                     <h5>Тренажер счета</h5>
-                    <p class="text-muted">Развивай математические навыки (скоро).</p>
-                    <button class="btn btn-outline-secondary" disabled>Скоро</button>
+                    <p class="text-muted">Развивай математические навыки и скорость счета.</p>
+                    <a href="{% url 'math_trainer' %}" class="btn btn-outline-primary">Открыть</a>
                 </div>
             </div>
         </div>
@@ -107,15 +111,86 @@
                 <div class="card-body text-center">
                     <div class="h1 mb-3">🎮</div>
                     <h5>Игры</h5>
-                    <p class="text-muted">Отдыхай с интересными играми (скоро).</p>
-                    <button class="btn btn-outline-secondary" disabled>Скоро</button>
+                    <p class="text-muted">Отдыхай с интересными играми и развивай логику.</p>
+                    <a href="{% url 'games_index' %}" class="btn btn-outline-primary">Открыть</a>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- О платформе -->
+    <!-- Быстрый старт для авторизованных пользователей -->
+    {% if user.is_authenticated %}
     <div class="row py-5 bg-light rounded-3">
+        <div class="col-12">
+            <h3 class="text-center mb-4">⚡ Быстрый старт</h3>
+            <div class="row">
+                <div class="col-md-2 text-center mb-3">
+                    <a href="{% url 'task_list' %}" class="text-decoration-none">
+                        <div class="card border-0 bg-white shadow-sm">
+                            <div class="card-body">
+                                <div class="h1 mb-2">✅</div>
+                                <small>Задачи</small>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-2 text-center mb-3">
+                    <a href="{% url 'music_player' %}" class="text-decoration-none">
+                        <div class="card border-0 bg-white shadow-sm">
+                            <div class="card-body">
+                                <div class="h1 mb-2">🎵</div>
+                                <small>Музыка</small>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-2 text-center mb-3">
+                    <a href="{% url 'math_trainer' %}" class="text-decoration-none">
+                        <div class="card border-0 bg-white shadow-sm">
+                            <div class="card-body">
+                                <div class="h1 mb-2">🧮</div>
+                                <small>Тренажер</small>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-2 text-center mb-3">
+                    <a href="{% url 'games_index' %}" class="text-decoration-none">
+                        <div class="card border-0 bg-white shadow-sm">
+                            <div class="card-body">
+                                <div class="h1 mb-2">🎮</div>
+                                <small>Игры</small>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-2 text-center mb-3">
+                    <a href="{% url 'calendar' %}" class="text-decoration-none">
+                        <div class="card border-0 bg-white shadow-sm">
+                            <div class="card-body">
+                                <div class="h1 mb-2">📅</div>
+                                <small>Календарь</small>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-2 text-center mb-3">
+                    <a href="{% url 'grade_calculator' %}" class="text-decoration-none">
+                        <div class="card border-0 bg-white shadow-sm">
+                            <div class="card-body">
+                                <div class="h1 mb-2">📊</div>
+                                <small>Калькулятор</small>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- О платформе -->
+    <div class="row py-5 rounded-3" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
         <div class="col-lg-8 mx-auto text-center">
             <h2 class="mb-4">💫 О HyperScript</h2>
             <p class="lead mb-4">
@@ -124,20 +199,25 @@
                 в одном удобном месте.
             </p>
             <div class="row mt-5">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="h1">🔒</div>
                     <h6>Безопасность</h6>
                     <p class="small">Ваши данные защищены</p>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="h1">⚡</div>
                     <h6>Скорость</h6>
                     <p class="small">Быстрая работа всех приложений</p>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="h1">🎵</div>
                     <h6>Музыка</h6>
                     <p class="small">Непрерывное воспроизведение</p>
+                </div>
+                <div class="col-md-3">
+                    <div class="h1">🎯</div>
+                    <h6>Продуктивность</h6>
+                    <p class="small">6 приложений в одном месте</p>
                 </div>
             </div>
         </div>

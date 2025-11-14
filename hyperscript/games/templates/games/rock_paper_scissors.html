@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Камень-Ножницы-Бумага - HyperScript{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title mb-0">
+                    <i class="fas fa-hand-rock me-2"></i>Камень-Ножницы-Бумага
+                </h3>
+            </div>
+            <div class="card-body text-center">
+                <!-- Статистика -->
+                <div class="row mb-4">
+                    <div class="col-4">
+                        <div class="border rounded p-2 bg-light">
+                            <small class="text-muted">Победы</small>
+                            <div class="h4 mb-0 text-success" id="wins">0</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="border rounded p-2 bg-light">
+                            <small class="text-muted">Поражения</small>
+                            <div class="h4 mb-0 text-danger" id="losses">0</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="border rounded p-2 bg-light">
+                            <small class="text-muted">Ничьи</small>
+                            <div class="h4 mb-0 text-warning" id="draws">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Выбор игрока -->
+                <div class="mb-4">
+                    <h5>Выберите ваш ход:</h5>
+                    <div class="btn-group btn-group-lg" role="group">
+                        <button type="button" class="btn btn-outline-primary choice-btn" data-choice="rock">
+                            <i class="fas fa-hand-rock fa-2x"></i><br>
+                            Камень
+                        </button>
+                        <button type="button" class="btn btn-outline-success choice-btn" data-choice="paper">
+                            <i class="fas fa-hand-paper fa-2x"></i><br>
+                            Бумага
+                        </button>
+                        <button type="button" class="btn btn-outline-warning choice-btn" data-choice="scissors">
+                            <i class="fas fa-hand-scissors fa-2x"></i><br>
+                            Ножницы
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Результат раунда -->
+                <div id="resultArea" style="display: none;">
+                    <div class="row align-items-center mb-4">
+                        <div class="col-5 text-end">
+                            <div class="choice-display">
+                                <i class="fas fa-user fa-3x text-primary"></i>
+                                <div id="userChoice" class="h5 mt-2"></div>
+                            </div>
+                        </div>
+                        <div class="col-2">
+                            <div class="display-4">VS</div>
+                        </div>
+                        <div class="col-5 text-start">
+                            <div class="choice-display">
+                                <i class="fas fa-laptop fa-3x text-secondary"></i>
+                                <div id="computerChoice" class="h5 mt-2"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert" id="resultAlert">
+                        <h4 id="resultText" class="mb-0"></h4>
+                    </div>
+
+                    <button class="btn btn-primary btn-lg mt-3" id="playAgain">
+                        <i class="fas fa-redo me-2"></i>Играть снова
+                    </button>
+                </div>
+
+                <!-- Начальный экран -->
+                <div id="startArea">
+                    <div class="py-4">
+                        <i class="fas fa-hand-rock fa-4x text-muted mb-3"></i>
+                        <h4>Сделайте ваш выбор!</h4>
+                        <p class="text-muted">Выберите камень, ножницы или бумагу чтобы начать игру</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+class RockPaperScissors {
+    constructor() {
+        this.wins = 0;
+        this.losses = 0;
+        this.draws = 0;
+        this.initializeEventListeners();
+    }
+    
+    initializeEventListeners() {
+        // Кнопки выбора
+        document.querySelectorAll('.choice-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                this.playRound(e.target.closest('.choice-btn').dataset.choice);
+            });
+        });
+        
+        // Кнопка "Играть снова"
+        document.getElementById('playAgain').addEventListener('click', () => {
+            this.resetRound();
+        });
+    }
+    
+    async playRound(userChoice) {
+        try {
+            const response = await fetch('/games/play-rps/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    choice: userChoice
+                })
+            });
+            
+            const data = await response.json();
+            this.displayResult(userChoice, data.computer_choice, data.result, data.message);
+            
+        } catch (error) {
+            console.error('Error playing round:', error);
+        }
+    }
+    
+    displayResult(userChoice, computerChoice, result, message) {
+        // Обновляем статистику
+        if (result === 'win') this.wins++;
+        else if (result === 'lose') this.losses++;
+        else this.draws++;
+        
+        this.updateStats();
+        
+        // Показываем выборы
+        const choiceNames = {
+            'rock': 'Камень 🪨',
+            'paper': 'Бумага 📄', 
+            'scissors': 'Ножницы ✂️'
+        };
+        
+        document.getElementById('userChoice').textContent = choiceNames[userChoice];
+        document.getElementById('computerChoice').textContent = choiceNames[computerChoice];
+        
+        // Показываем результат
+        const alert = document.getElementById('resultAlert');
+        const resultText = document.getElementById('resultText');
+        
+        if (result === 'win') {
+            alert.className = 'alert alert-success';
+            resultText.innerHTML = '<i class="fas fa-trophy me-2"></i>' + message;
+        } else if (result === 'lose') {
+            alert.className = 'alert alert-danger';
+            resultText.innerHTML = '<i class="fas fa-times me-2"></i>' + message;
+        } else {
+            alert.className = 'alert alert-warning';
+            resultText.innerHTML = '<i class="fas fa-handshake me-2"></i>' + message;
+        }
+        
+        // Переключаем экраны
+        document.getElementById('startArea').style.display = 'none';
+        document.getElementById('resultArea').style.display = 'block';
+    }
+    
+    updateStats() {
+        document.getElementById('wins').textContent = this.wins;
+        document.getElementById('losses').textContent = this.losses;
+        document.getElementById('draws').textContent = this.draws;
+    }
+    
+    resetRound() {
+        document.getElementById('startArea').style.display = 'block';
+        document.getElementById('resultArea').style.display = 'none';
+    }
+}
+
+// Инициализация игры
+document.addEventListener('DOMContentLoaded', function() {
+    window.rpsGame = new RockPaperScissors();
+});
+</script>
+
+<style>
+.choice-btn {
+    min-width: 120px;
+    padding: 15px 10px;
+}
+
+.choice-display {
+    padding: 20px;
+}
+
+.choice-btn i, .choice-display i {
+    margin-bottom: 10px;
+}
+</style>
+{% endblock %}

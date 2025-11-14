@@ -6,49 +6,248 @@
 <div class="container">
     <div class="row">
         <div class="col-md-4">
-            <div class="card">
+            <div class="card shadow-sm">
                 <div class="card-body text-center">
-                    <div class="h1">👤</div>
+                    <div class="h1 mb-3">👤</div>
                     <h4>{{ user.username }}</h4>
                     <p class="text-muted">{{ user.email|default:"Email не указан" }}</p>
                     <div class="mt-3">
                         <small class="text-muted">Зарегистрирован: {{ user.date_joined|date:"d.m.Y" }}</small>
                     </div>
+                    <div class="mt-2">
+                        <small class="text-muted">Последний вход: {{ user.last_login|date:"d.m.Y H:i"|default:"Никогда" }}</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Быстрые действия -->
+            <div class="card shadow-sm mt-4">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0">⚡ Быстрые действия</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'task_list' %}" class="btn btn-outline-primary btn-sm">📝 К задачам</a>
+                        <a href="{% url 'music_player' %}" class="btn btn-outline-success btn-sm">🎵 К музыке</a>
+                        <a href="{% url 'math_trainer' %}" class="btn btn-outline-warning btn-sm">🧮 Тренажер счета</a>
+                        <a href="{% url 'games_index' %}" class="btn btn-outline-info btn-sm">🎮 К играм</a>
+                        <a href="{% url 'grade_calculator' %}" class="btn btn-outline-secondary btn-sm">📊 К калькулятору</a>
+                        <a href="{% url 'year_calendar' %}" class="btn btn-outline-dark btn-sm">📅 К календарю</a>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">📊 Статистика активности</h5>
+            <!-- Общая статистика -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">📊 Общая статистика</h5>
                 </div>
                 <div class="card-body">
                     <div class="row text-center">
-                        <div class="col-4">
-                            <div class="h4 text-primary">{% if user_tasks %}{{ user_tasks.count }}{% else %}0{% endif %}</div>
-                            <small>Всего задач</small>
+                        <div class="col-3">
+                            <div class="border rounded p-2 bg-light">
+                                <div class="h4 text-primary mb-1">{{ user.task_set.count|default:"0" }}</div>
+                                <small class="text-muted">Задачи</small>
+                            </div>
                         </div>
-                        <div class="col-4">
-                            <div class="h4 text-success">{% if completed_tasks %}{{ completed_tasks }}{% else %}0{% endif %}</div>
-                            <small>Выполнено</small>
+                        <div class="col-3">
+                            <div class="border rounded p-2 bg-light">
+                                <div class="h4 text-success mb-1">{{ user.musictrack_set.count|default:"0" }}</div>
+                                <small class="text-muted">Треки</small>
+                            </div>
                         </div>
-                        <div class="col-4">
-                            <div class="h4 text-info">{% if user_tracks %}{{ user_tracks.count }}{% else %}0{% endif %}</div>
-                            <small>Треков</small>
+                        <div class="col-3">
+                            <div class="border rounded p-2 bg-light">
+                                <div class="h4 text-warning mb-1">{{ user.math_scores.count|default:"0" }}</div>
+                                <small class="text-muted">Тренировки</small>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="border rounded p-2 bg-light">
+                                <div class="h4 text-info mb-1">{{ user.gamesession_set.count|default:"0" }}</div>
+                                <small class="text-muted">Игры</small>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            
-            <div class="card mt-4">
-                <div class="card-header">
-                    <h5 class="mb-0">⚡ Быстрые действия</h5>
+
+            <!-- Детальная статистика -->
+            <div class="row mt-4">
+                <!-- Статистика задач -->
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-primary text-white">
+                            <h6 class="mb-0">✅ Статистика задач</h6>
+                        </div>
+                        <div class="card-body">
+                            {% with total_tasks=user.task_set.count completed_tasks=user.task_set.filter.completed.count %}
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between">
+                                    <span>Всего задач:</span>
+                                    <strong>{{ total_tasks }}</strong>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span>Выполнено:</span>
+                                    <strong class="text-success">{{ completed_tasks }}</strong>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span>В процессе:</span>
+                                    <strong class="text-warning">{{ total_tasks|add:-completed_tasks }}</strong>
+                                </div>
+                            </div>
+                            {% if total_tasks > 0 %}
+                            
+                            {% endif %}
+                            {% endwith %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Статистика математики -->
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-warning text-dark">
+                            <h6 class="mb-0">🧮 Статистика математики</h6>
+                        </div>
+                        <div class="card-body">
+                            {% with math_scores=user.math_scores.all %}
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between">
+                                    <span>Тренировок:</span>
+                                    <strong>{{ math_scores.count }}</strong>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span>Всего вопросов:</span>
+                                    <strong>
+                                        {% if math_scores %}
+                                            {% with total=0 %}
+                                                {% for score in math_scores %}
+                                                    {{ total|add:score.total_questions }}
+                                                {% endfor %}
+                                            {% endwith %}
+                                        {% else %}
+                                            0
+                                        {% endif %}
+                                    </strong>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span>Лучший счет:</span>
+                                    <strong class="text-success">
+                                        {% if math_scores %}
+                                            {{ math_scores.0.score }}
+                                        {% else %}
+                                            0
+                                        {% endif %}
+                                    </strong>
+                                </div>
+                            </div>
+                            {% endwith %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Статистика игр -->
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-success text-white">
+                            <h6 class="mb-0">🎮 Статистика игр</h6>
+                        </div>
+                        <div class="card-body">
+                            {% with game_sessions=user.gamesession_set.all %}
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between">
+                                    <span>Игровых сессий:</span>
+                                    <strong>{{ game_sessions.count }}</strong>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span>Побед:</span>
+                                    <strong class="text-success">
+                                        {% if game_sessions %}
+                                            {{ game_sessions.filter.result="win".count }}
+                                        {% else %}
+                                            0
+                                        {% endif %}
+                                    </strong>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span>Всего очков:</span>
+                                    <strong class="text-info">
+                                        {% if game_sessions %}
+                                            {{ game_sessions.0.score }}
+                                        {% else %}
+                                            0
+                                        {% endif %}
+                                    </strong>
+                                </div>
+                            </div>
+                            {% endwith %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Статистика музыки -->
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-info text-white">
+                            <h6 class="mb-0">🎵 Статистика музыки</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between">
+                                    <span>Загружено треков:</span>
+                                    <strong>{{ user.musictrack_set.count|default:"0" }}</strong>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span>Плейлистов:</span>
+                                    <strong>0</strong>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span>Общее время:</span>
+                                    <strong>--:--</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Активность -->
+            <div class="card shadow-sm mt-2">
+                <div class="card-header bg-secondary text-white">
+                    <h6 class="mb-0">📈 Активность по приложениям</h6>
                 </div>
                 <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <a href="{% url 'task_list' %}" class="btn btn-outline-primary">📝 К задачам</a>
-                        <a href="{% url 'music_player' %}" class="btn btn-outline-success">🎵 К музыке</a>
-                        <a href="{% url 'grade_calculator' %}" class="btn btn-outline-info">📊 К калькулятору</a>
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="badge bg-primary me-2">✅</span>
+                                <span>Менеджер задач</span>
+                            </div>
+                            <small class="text-muted">Активно</small>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="badge bg-success me-2">🎵</span>
+                                <span>Музыкальный плеер</span>
+                            </div>
+                            <small class="text-muted">Активно</small>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="badge bg-warning me-2">🧮</span>
+                                <span>Тренажер счета</span>
+                            </div>
+                            <small class="text-muted">Новое!</small>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="badge bg-info me-2">🎮</span>
+                                <span>Игры</span>
+                            </div>
+                            <small class="text-muted">Новое!</small>
+                        </div>
                     </div>
                 </div>
             </div>
