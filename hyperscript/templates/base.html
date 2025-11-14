@@ -185,12 +185,14 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-white disabled" href="#">
+                            <a class="nav-link text-white {% if 'math' in request.path %}active{% endif %}" 
+                                href="{% url 'math_trainer' %}">
                                 🧮 Тренажер счета
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-white disabled" href="#">
+                            <a class="nav-link text-white {% if 'games' in request.path %}active{% endif %}" 
+                               href="{% url 'games_index' %}">
                                 🎮 Игры
                             </a>
                         </li>
