@@ -110,12 +110,12 @@ class MathScore(models.Model):
             models.Index(fields=['user', 'difficulty']),
             models.Index(fields=['created_at']),
         ]
-        constraints = [
-            models.CheckConstraint(
-                check=models.Q(correct_answers__lte=models.F('total_questions')),
-                name='correct_answers_lte_total_questions'
-            )
-        ]
+       # constraints = [
+       #     models.CheckConstraint(
+        #        check=models.Q(correct_answers__lte=models.F('total_questions')),
+         #       name='correct_answers_lte_total_questions'
+          #  )
+        #]
     
     def __str__(self):
         """Строковое представление объекта"""
