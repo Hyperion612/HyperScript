@@ -1,8 +1,7 @@
 from django.urls import path
-from .views import calendar_view
+from . import views
 
 urlpatterns = [
-    path('calendar/', calendar_view, name='calendar_year'),          # весь год
-    path('calendar/<int:year>/', calendar_view, name='calendar_year'),  # весь год конкретного года
-    path('calendar/<int:year>/<int:month>/', calendar_view, name='calendar_month'),  # один месяц
+    path('', views.year_calendar, name='year_calendar'),
+    path('<int:year>/<int:month>/', views.month_calendar, name='month_calendar'),
 ]

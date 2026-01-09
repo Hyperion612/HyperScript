@@ -13,36 +13,52 @@
         </a>
     </div>
 
+    <!-- Отладка (можно убрать потом) -->
+    <div class="alert alert-info mb-4">
+        <strong>Отладка:</strong><br>
+        Год: {{ year }}, Месяц: {{ month }}<br>
+        Недель в календаре: {{ calendar|length }}<br>
+        Сегодня: {{ today|date:"d.m.Y" }}<br>
+        Предыдущий: {{ prev_year }}/{{ prev_month }} | Следующий: {{ next_year }}/{{ next_month }}
+    </div>
+
     <!-- Календарь -->
-    <div class="card">
+    <div class="card shadow-sm">
         <div class="card-header bg-light">
             <div class="row text-center fw-bold">
-                <div class="col">Пн</div>
-                <div class="col">Вт</div>
-                <div class="col">Ср</div>
-                <div class="col">Чт</div>
-                <div class="col">Пт</div>
-                <div class="col">Сб</div>
-                <div class="col">Вс</div>
+                <div class="col p-2">Пн</div>
+                <div class="col p-2">Вт</div>
+                <div class="col p-2">Ср</div>
+                <div class="col p-2">Чт</div>
+                <div class="col p-2">Пт</div>
+                <div class="col p-2">Сб</div>
+                <div class="col p-2 text-danger">Вс</div>
             </div>
         </div>
 
         <div class="card-body p-0">
             {% for week in calendar %}
-            <div class="row week-row g-0">
+            <div class="row week-row g-0 border-top">
                 {% for day in week %}
-                <div class="col day-cell border
-                    {% if day == 0 %} bg-light {% endif %}
+                <div class="col day-cell border-end
+                    {% if day == 0 %} bg-light text-muted{% endif %}
                     {% if day != 0 and today.year == year and today.month == month and day == today.day %}
-                        bg-warning
+                        bg-warning bg-opacity-25
                     {% endif %}">
 
                     {% if day != 0 %}
                         <div class="day-number
                             {% if today.year == year and today.month == month and day == today.day %}
-                                fw-bold
+                                fw-bold text-danger
+                            {% elif forloop.parentloop.last and forloop.counter >= 6 %}
+                                text-danger
                             {% endif %}">
                             {{ day }}
+                        </div>
+                        
+                        <!-- Место для событий (потом можно добавить) -->
+                        <div class="events mt-1">
+                            <!-- Будут отображаться события дня -->
                         </div>
                     {% endif %}
 
@@ -56,11 +72,20 @@
     <!-- Навигация по месяцам -->
     <div class="d-flex justify-content-between mt-4">
         <a href="{% url 'month_calendar' prev_year prev_month %}" class="btn btn-primary">
-            ← Предыдущий
+            ← {{ prev_month|stringformat:"02d" }}.{{ prev_year }}
         </a>
+        
+        <div class="btn-group">
+            <a href="{% url 'year_calendar' %}" class="btn btn-outline-secondary">
+                К выбору года
+            </a>
+            <a href="{% url 'month_calendar' today.year today.month %}" class="btn btn-outline-info">
+                Сегодня
+            </a>
+        </div>
 
         <a href="{% url 'month_calendar' next_year next_month %}" class="btn btn-primary">
-            Следующий →
+            {{ next_month|stringformat:"02d" }}.{{ next_year }} →
         </a>
     </div>
 
@@ -68,19 +93,57 @@
 
 <style>
 .week-row {
-    min-height: 90px;
+    min-height: 100px;
 }
 
 .day-cell {
     aspect-ratio: 1;
     position: relative;
+    padding: 8px;
 }
 
 .day-number {
     font-size: 1.1em;
     position: absolute;
-    top: 6px;
+    top: 8px;
     right: 8px;
+    font-weight: 500;
+}
+
+.events {
+    position: absolute;
+    bottom: 5px;
+    left: 5px;
+    right: 5px;
+    font-size: 0.7rem;
+}
+
+/* Для воскресений и сегодняшнего дня */
+.bg-warning.bg-opacity-25 {
+    background-color: rgba(255, 193, 7, 0.25) !important;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .week-row {
+        min-height: 70px;
+    }
+    .day-number {
+        font-size: 0.9em;
+        top: 4px;
+        right: 4px;
+    }
+    .events {
+        font-size: 0.6rem;
+        bottom: 2px;
+        left: 2px;
+        right: 2px;
+    }
+    
+    .col.p-2 {
+        padding: 4px !important;
+        font-size: 0.9em;
+    }
 }
 </style>
 {% endblock %}

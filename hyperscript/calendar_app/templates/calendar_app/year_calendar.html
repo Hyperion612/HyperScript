@@ -6,6 +6,11 @@
 <div class="container">
     <h1 class="text-center mb-4">📅 Календарь на год</h1>
 
+    <!-- Отладка (можно убрать потом) -->
+    <div class="alert alert-info">
+        <strong>Отладка:</strong> Годы: {{ years|join:", " }} | Текущий год: {{ current_year }}
+    </div>
+
     <div class="row">
         {% for year in years %}
         <div class="col-md-6 col-lg-3 mb-4">
@@ -20,6 +25,7 @@
                         {% with "Янв,Фев,Мар,Апр,Май,Июн,Июл,Авг,Сен,Окт,Ноя,Дек" as month_names %}
                             {% for month in month_names.split %}
                                 <div class="col-4 mb-2">
+                                    <!-- ВАЖНО: имя маршрута должно быть 'month_calendar' -->
                                     <a href="{% url 'month_calendar' year forloop.counter %}"
                                        class="btn btn-outline-primary btn-sm w-100">
                                         {{ month }}
@@ -28,6 +34,12 @@
                             {% endfor %}
                         {% endwith %}
                     </div>
+                </div>
+
+                <div class="card-footer text-center">
+                    <a href="{% url 'month_calendar' year 1 %}" class="btn btn-link btn-sm">
+                        Показать все месяцы
+                    </a>
                 </div>
 
             </div>
@@ -39,6 +51,7 @@
 <style>
 .card {
     transition: transform 0.2s ease;
+    height: 100%;
 }
 .card:hover {
     transform: translateY(-5px);
@@ -47,6 +60,18 @@
 .btn-sm {
     font-size: 0.8rem;
     padding: 0.25rem 0.5rem;
+    margin: 1px;
+}
+
+/* Для мобильных */
+@media (max-width: 768px) {
+    .col-4 {
+        padding: 2px;
+    }
+    .btn-sm {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.3rem;
+    }
 }
 </style>
 {% endblock %}
