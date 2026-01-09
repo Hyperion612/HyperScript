@@ -6,7 +6,6 @@ from django.utils import timezone
 def year_calendar(request):
     """
     Показывает страницу с выбором года и месяцев
-    (для шаблона year_calendar.html)
     """
     today = datetime.today()
     current_year = today.year
@@ -18,12 +17,12 @@ def year_calendar(request):
         'years': years,
         'current_year': current_year,
     }
-    return render(request, 'year_calendar.html', context)
+    # ВАЖНО: правильный путь к шаблону с учетом структуры
+    return render(request, 'calendar_app/year_calendar.html', context)
 
 def month_calendar(request, year, month):
     """
     Показывает календарь конкретного месяца
-    (для шаблона month_calendar.html)
     """
     year = int(year)
     month = int(month)
@@ -32,7 +31,7 @@ def month_calendar(request, year, month):
     # Получаем календарь на месяц (список недель)
     month_cal = calendar.monthcalendar(year, month)
     
-    # Русские названия месяцев (как в вашем шаблоне)
+    # Русские названия месяцев
     month_names_ru = [
         'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
         'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
@@ -53,11 +52,12 @@ def month_calendar(request, year, month):
         'year': year,
         'month': month,
         'month_name': month_names_ru[month - 1],
-        'calendar': month_cal,  # Это для цикла {% for week in calendar %}
+        'calendar': month_cal,
         'today': today.date(),
         'prev_year': prev_year,
         'prev_month': prev_month,
         'next_year': next_year,
         'next_month': next_month,
     }
-    return render(request, 'month_calendar.html', context)
+    # ВАЖНО: правильный путь к шаблону
+    return render(request, 'calendar_app/month_calendar.html', context)
