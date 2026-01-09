@@ -1,16 +1,19 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ month_name }} {{ year }} - Study Assistant{% endblock %}
+{% block title %}{{ month_name }} {{ year }} - HyperScript{% endblock %}
 
 {% block content %}
 <div class="container">
+
+    <!-- Заголовок + кнопка назад -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>📅 {{ month_name }} {{ year }}</h1>
-        <div>
-            <a href="{% url 'year_calendar' %}" class="btn btn-outline-secondary">Назад к годам</a>
-        </div>
+        <a href="{% url 'year_calendar' %}" class="btn btn-outline-secondary">
+            Назад к годам
+        </a>
     </div>
 
+    <!-- Календарь -->
     <div class="card">
         <div class="card-header bg-light">
             <div class="row text-center fw-bold">
@@ -23,17 +26,26 @@
                 <div class="col">Вс</div>
             </div>
         </div>
+
         <div class="card-body p-0">
             {% for week in calendar %}
-            <div class="row week-row">
+            <div class="row week-row g-0">
                 {% for day in week %}
-                <div class="col day-cell p-2 border {% if day == 0 %}bg-light{% endif %} 
-                    {% if is_current_month and day == today.day %}bg-warning{% endif %}">
+                <div class="col day-cell border
+                    {% if day == 0 %} bg-light {% endif %}
+                    {% if day != 0 and today.year == year and today.month == month and day == today.day %}
+                        bg-warning
+                    {% endif %}">
+
                     {% if day != 0 %}
-                    <div class="day-number {% if is_current_month and day == today.day %}fw-bold text-dark{% endif %}">
-                        {{ day }}
-                    </div>
+                        <div class="day-number
+                            {% if today.year == year and today.month == month and day == today.day %}
+                                fw-bold
+                            {% endif %}">
+                            {{ day }}
+                        </div>
                     {% endif %}
+
                 </div>
                 {% endfor %}
             </div>
@@ -43,31 +55,32 @@
 
     <!-- Навигация по месяцам -->
     <div class="d-flex justify-content-between mt-4">
-        {% with prev_month=month|add:"-1" next_month=month|add:"1" %}
-            {% if prev_month > 0 %}
-                <a href="{% url 'month_calendar' year prev_month %}" class="btn btn-primary">← {{ prev_month|stringformat:"02d" }}</a>
-            {% else %}
-                <a href="{% url 'month_calendar' year|add:"-1" 12 %}" class="btn btn-primary">← Дек {{ year|add:"-1" }}</a>
-            {% endif %}
-            
-            {% if next_month < 13 %}
-                <a href="{% url 'month_calendar' year next_month %}" class="btn btn-primary">{{ next_month|stringformat:"02d" }} →</a>
-            {% else %}
-                <a href="{% url 'month_calendar' year|add:"1" 1 %}" class="btn btn-primary">Янв {{ year|add:"1" }} →</a>
-            {% endif %}
-        {% endwith %}
+        <a href="{% url 'month_calendar' prev_year prev_month %}" class="btn btn-primary">
+            ← Предыдущий
+        </a>
+
+        <a href="{% url 'month_calendar' next_year next_month %}" class="btn btn-primary">
+            Следующий →
+        </a>
     </div>
+
 </div>
 
 <style>
 .week-row {
-    min-height: 80px;
+    min-height: 90px;
 }
+
 .day-cell {
     aspect-ratio: 1;
+    position: relative;
 }
+
 .day-number {
     font-size: 1.1em;
+    position: absolute;
+    top: 6px;
+    right: 8px;
 }
 </style>
 {% endblock %}

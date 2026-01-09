@@ -5,20 +5,22 @@
 {% block content %}
 <div class="container">
     <h1 class="text-center mb-4">📅 Календарь на год</h1>
-    
+
     <div class="row">
         {% for year in years %}
         <div class="col-md-6 col-lg-3 mb-4">
             <div class="card {% if year == current_year %}border-primary shadow{% endif %}">
+                
                 <div class="card-header text-center {% if year == current_year %}bg-primary text-white{% endif %}">
                     <h5 class="mb-0">{{ year }} год</h5>
                 </div>
+
                 <div class="card-body">
                     <div class="row">
                         {% with "Янв,Фев,Мар,Апр,Май,Июн,Июл,Авг,Сен,Окт,Ноя,Дек" as month_names %}
                             {% for month in month_names.split %}
                                 <div class="col-4 mb-2">
-                                    <a href="{% url 'month_calendar' year forloop.counter %}" 
+                                    <a href="{% url 'month_calendar' year forloop.counter %}"
                                        class="btn btn-outline-primary btn-sm w-100">
                                         {{ month }}
                                     </a>
@@ -27,6 +29,7 @@
                         {% endwith %}
                     </div>
                 </div>
+
             </div>
         </div>
         {% endfor %}
@@ -35,11 +38,12 @@
 
 <style>
 .card {
-    transition: transform 0.2s;
+    transition: transform 0.2s ease;
 }
 .card:hover {
     transform: translateY(-5px);
 }
+
 .btn-sm {
     font-size: 0.8rem;
     padding: 0.25rem 0.5rem;
