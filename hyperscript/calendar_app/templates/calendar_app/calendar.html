@@ -1,0 +1,33 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Календарь на {{ year }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        h2 { margin-top: 30px; }
+        table { border-collapse: collapse; width: 100%; max-width: 400px; }
+        th, td { border: 1px solid #ccc; padding: 5px; text-align: center; }
+        th { background-color: #f0f0f0; }
+        td.empty { background-color: #f9f9f9; }
+    </style>
+</head>
+<body>
+    <h1>Календарь {% if month %}{{ calendar.keys|first }}{% endif %} {{ year }}</h1>
+
+{% for month_name, weeks in calendar.items %}
+    <h2>{{ month_name }}</h2>
+    <table border="1">
+        <tr>
+            <th>Пн</th><th>Вт</th><th>Ср</th><th>Чт</th><th>Пт</th><th>Сб</th><th>Вс</th>
+        </tr>
+        {% for week in weeks %}
+        <tr>
+            {% for day in week %}
+            <td>{% if day != 0 %}{{ day }}{% endif %}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </table>
+{% endfor %}
