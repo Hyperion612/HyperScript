@@ -4,46 +4,395 @@
 
 {% block content %}
 <div class="container">
+    <!-- Заголовок -->
     <div class="row">
         <div class="col-12">
-            <h1 class="mb-4">🎮 Игры</h1>
-            <p class="lead">Отдохните и развлекитесь с нашими играми</p>
+            <h1 class="mb-4">🎮 Игры HyperScript</h1>
+            <p class="lead">Отдохните и развлекитесь с нашими играми. Все игры сохраняют ваш прогресс!</p>
         </div>
     </div>
 
-    <div class="row mt-4">
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card h-100">
-                <div class="card-body text-center">
-                    <i class="fas fa-hand-rock fa-3x text-primary mb-3"></i>
-                    <h5 class="card-title">Камень-Ножницы-Бумага</h5>
-                    <p class="card-text">Классическая игра против компьютера</p>
-                    <a href="{% url 'rock_paper_scissors' %}" class="btn btn-primary">Играть</a>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card h-100">
-                <div class="card-body text-center">
-                    <i class="fas fa-ghost fa-3x text-success mb-3"></i>
-                    <h5 class="card-title">Виселица</h5>
-                    <p class="card-text">Угадайте слово по буквам</p>
-                    <button class="btn btn-success" disabled>Скоро</button>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card h-100">
-                <div class="card-body text-center">
-                    <i class="fas fa-th fa-3x text-warning mb-3"></i>
-                    <h5 class="card-title">2048</h5>
-                    <p class="card-text">Объединяйте числа чтобы получить 2048</p>
-                    <button class="btn btn-warning" disabled>Скоро</button>
+    <!-- Статистика (для авторизованных пользователей) -->
+    {% if user.is_authenticated %}
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card bg-light border-0 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">📊 Ваша игровая статистика</h5>
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <div class="h3 text-primary">{{ user_games_stats.rps_wins|default:"0" }}</div>
+                            <small>Побед в КНБ</small>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="h3 text-success">{{ user_games_stats.hangman_wins|default:"0" }}</div>
+                            <small>Побед в Виселице</small>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="h3 text-warning">{{ user_games_stats.game_2048_high_score|default:"0" }}</div>
+                            <small>Рекорд в 2048</small>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="h3 text-info">{{ user_games_stats.total_games|default:"0" }}</div>
+                            <small>Всего сыграно</small>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+    {% endif %}
+
+    <!-- Все игры -->
+    <div class="row">
+        
+        <!-- Камень-Ножницы-Бумага -->
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card game-card h-100 shadow">
+                <div class="card-body text-center">
+                    <div class="game-icon mb-3">
+                        <div class="display-4">✊✋✌️</div>
+                    </div>
+                    <h4 class="card-title">Камень-Ножницы-Бумага</h4>
+                    <p class="card-text text-muted">Классическая игра против компьютера. Простая, но увлекательная!</p>
+                    
+                    <div class="game-features mb-3">
+                        <span class="badge bg-primary">🎯 Против ИИ</span>
+                        <span class="badge bg-success">📊 Статистика</span>
+                        <span class="badge bg-info">⚡ Быстрая</span>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'rock_paper_scissors' %}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-play-circle"></i> Играть
+                        </a>
+                        <a href="#rps-rules" class="btn btn-outline-secondary" data-bs-toggle="collapse">
+                            <i class="fas fa-info-circle"></i> Правила
+                        </a>
+                    </div>
+                    
+                    <div class="collapse mt-3" id="rps-rules">
+                        <div class="card card-body text-start small">
+                            <strong>Правила:</strong>
+                            <ul class="mb-0">
+                                <li>Камень бьет ножницы</li>
+                                <li>Ножницы бьют бумагу</li>
+                                <li>Бумага бьет камень</li>
+                                <li>Одинаковый выбор - ничья</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer text-center">
+                    <small class="text-muted">🎮 Классика • Бесплатно • Для всех</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Виселица -->
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card game-card h-100 shadow">
+                <div class="card-body text-center">
+                    <div class="game-icon mb-3">
+                        <div class="display-4">👻</div>
+                    </div>
+                    <h4 class="card-title">Виселица</h4>
+                    <p class="card-text text-muted">Угадайте слово по буквам. Развивайте словарный запас!</p>
+                    
+                    <div class="game-features mb-3">
+                        <span class="badge bg-success">📚 Словарь</span>
+                        <span class="badge bg-warning">🧠 Развитие</span>
+                        <span class="badge bg-danger">7 ошибок</span>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'hangman' %}" class="btn btn-success btn-lg">
+                            <i class="fas fa-play-circle"></i> Играть
+                        </a>
+                        <a href="#hangman-rules" class="btn btn-outline-secondary" data-bs-toggle="collapse">
+                            <i class="fas fa-info-circle"></i> Правила
+                        </a>
+                    </div>
+                    
+                    <div class="collapse mt-3" id="hangman-rules">
+                        <div class="card card-body text-start small">
+                            <strong>Правила:</strong>
+                            <ul class="mb-0">
+                                <li>Угадайте слово по буквам</li>
+                                <li>Максимум 7 ошибок</li>
+                                <li>Используйте русский алфавит</li>
+                                <li>Все буквы заглавные</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer text-center">
+                    <small class="text-muted">📚 Обучающая • Бесплатно • Для всех</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2048 -->
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card game-card h-100 shadow">
+                <div class="card-body text-center">
+                    <div class="game-icon mb-3">
+                        <div class="display-4">🔢</div>
+                    </div>
+                    <h4 class="card-title">2048</h4>
+                    <p class="card-text text-muted">Объединяйте числа чтобы получить 2048. Развивайте логику!</p>
+                    
+                    <div class="game-features mb-3">
+                        <span class="badge bg-warning">🧩 Головоломка</span>
+                        <span class="badge bg-info">🏆 Рекорды</span>
+                        <span class="badge bg-primary">🎯 Стратегия</span>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'game_2048' %}" class="btn btn-warning btn-lg">
+                            <i class="fas fa-play-circle"></i> Играть
+                        </a>
+                        <a href="#2048-rules" class="btn btn-outline-secondary" data-bs-toggle="collapse">
+                            <i class="fas fa-info-circle"></i> Правила
+                        </a>
+                    </div>
+                    
+                    <div class="collapse mt-3" id="2048-rules">
+                        <div class="card card-body text-start small">
+                            <strong>Правила:</strong>
+                            <ul class="mb-0">
+                                <li>Перемещайте плитки стрелками</li>
+                                <li>Одинаковые плитки объединяются</li>
+                                <li>Цель: получить плитку 2048</li>
+                                <li>После каждого хода новая плитка</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer text-center">
+                    <small class="text-muted">🧩 Головоломка • Бесплатно • Для всех</small>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Скоро в разработке -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">🚀 Скоро появится</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        
+                        <div class="col-md-4 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3 display-6">🧠</div>
+                                <div>
+                                    <h6>Судоку</h6>
+                                    <p class="small text-muted mb-0">Классическая числовая головоломка</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3 display-6">🎴</div>
+                                <div>
+                                    <h6>Пасьянс</h6>
+                                    <p class="small text-muted mb-0">Карточная игра для одного игрока</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3 display-6">🎯</div>
+                                <div>
+                                    <h6>Крестики-нолики</h6>
+                                    <p class="small text-muted mb-0">Игра на логику 3x3</p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Советы по играм -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title">💡 Советы для игроков</h5>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="d-flex">
+                                <div class="me-3 text-primary">🎮</div>
+                                <div>
+                                    <h6>Для новичков</h6>
+                                    <p class="small mb-0">Начните с Камень-Ножницы-Бумага, это самая простая игра</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex">
+                                <div class="me-3 text-success">📈</div>
+                                <div>
+                                    <h6>Для развития</h6>
+                                    <p class="small mb-0">Виселица расширяет словарный запас</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex">
+                                <div class="me-3 text-warning">🏆</div>
+                                <div>
+                                    <h6>Для чемпионов</h6>
+                                    <p class="small mb-0">2048 требует стратегии и планирования</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Навигация -->
+    <div class="row mt-4">
+        <div class="col-12 text-center">
+            <div class="btn-group" role="group">
+                <a href="/" class="btn btn-outline-primary">
+                    <i class="fas fa-home"></i> На главную
+                </a>
+                <a href="/calendar/" class="btn btn-outline-success">
+                    <i class="fas fa-calendar"></i> Календарь
+                </a>
+                <a href="/music/" class="btn btn-outline-warning">
+                    <i class="fas fa-music"></i> Музыка
+                </a>
+                <a href="/tasks/" class="btn btn-outline-info">
+                    <i class="fas fa-tasks"></i> Задачи
+                </a>
+            </div>
+        </div>
+    </div>
+
 </div>
+
+<style>
+/* Стили для игровых карточек */
+.game-card {
+    transition: all 0.3s ease;
+    border: none;
+    overflow: hidden;
+}
+
+.game-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.15) !important;
+}
+
+.game-icon {
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.game-features .badge {
+    margin: 2px;
+    font-size: 0.7rem;
+    padding: 5px 8px;
+}
+
+/* Анимация для кнопок */
+.btn-lg {
+    transition: all 0.2s ease;
+}
+
+.btn-lg:hover {
+    transform: scale(1.05);
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .game-card {
+        margin-bottom: 20px;
+    }
+    
+    .display-4 {
+        font-size: 2.5rem;
+    }
+    
+    .btn-group {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .btn-group .btn {
+        margin-bottom: 10px;
+        width: 100%;
+    }
+}
+
+/* Анимация загрузки */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.game-card {
+    animation: fadeIn 0.5s ease forwards;
+}
+
+.game-card:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.game-card:nth-child(3) {
+    animation-delay: 0.2s;
+}
+
+/* Бейджи статусов */
+.badge {
+    font-weight: 500;
+}
+</style>
+
+<!-- Небольшой JavaScript для интерактивности -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Подсветка активной игры при наведении
+    const gameCards = document.querySelectorAll('.game-card');
+    gameCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.zIndex = '10';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.zIndex = '1';
+        });
+    });
+    
+    // Плавная прокрутка для правил
+    document.querySelectorAll('a[data-bs-toggle="collapse"]').forEach(link => {
+        link.addEventListener('click', function(e) {
+            const target = this.getAttribute('href');
+            const targetElement = document.querySelector(target);
+            
+            if (targetElement.classList.contains('show')) {
+                targetElement.style.transition = 'all 0.3s ease';
+            }
+        });
+    });
+    
+    console.log('🎮 Страница игр загружена!');
+});
+</script>
 {% endblock %}

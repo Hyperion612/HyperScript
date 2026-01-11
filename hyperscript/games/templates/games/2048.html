@@ -1,0 +1,247 @@
+{% extends 'base.html' %}
+
+{% block title %}2048 - HyperScript{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">🎮 2048</h3>
+                </div>
+                
+                <div class="card-body">
+                    
+                    <!-- Статистика и управление -->
+                    <div class="row mb-4">
+                        <div class="col-md-4 mb-3">
+                            <div class="border rounded p-3 text-center">
+                                <small>Счет</small>
+                                <div class="h3 mb-0 text-primary">{{ score }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="border rounded p-3 text-center">
+                                <small>Рекорд</small>
+                                <div class="h3 mb-0 text-warning">{{ high_score }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="border rounded p-3 text-center">
+                                <small>Ходы</small>
+                                <div class="h3 mb-0 text-info">{{ moves }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if won and not game_over %}
+                        <div class="alert alert-success mb-4">
+                            <h4>🎉 Поздравляем! Вы достигли 2048!</h4>
+                            <p class="mb-0">Продолжайте играть, чтобы улучшить счет!</p>
+                        </div>
+                    {% endif %}
+                    
+                    {% if game_over %}
+                        <div class="alert alert-danger mb-4">
+                            <h4>💀 Игра окончена!</h4>
+                            <p class="mb-0">Нет возможных ходов. Ваш счет: {{ score }}</p>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Игровое поле -->
+                    <div class="game-board mb-4">
+                        <div class="grid-container">
+                            {% for i in range %}
+                            <div class="grid-row">
+                                {% for j in range %}
+                                <div class="grid-cell">
+                                    <div class="tile tile-{{ grid.i.j|default:0 }} {% if grid.i.j %}tile-show{% endif %}">
+                                        {% if grid.i.j %}
+                                            {{ grid.i.j }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Управление -->
+                    <div class="mb-4">
+                        {% if not game_over %}
+                        <div class="text-center mb-3">
+                            <h5>Управление:</h5>
+                            <div class="btn-group" role="group">
+                                <form method="POST" style="display: inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="direction" value="up">
+                                    <button type="submit" class="btn btn-outline-primary btn-control">
+                                        ↑ Вверх
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="mt-2">
+                                <form method="POST" style="display: inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="direction" value="left">
+                                    <button type="submit" class="btn btn-outline-primary btn-control">
+                                        ← Влево
+                                    </button>
+                                </form>
+                                
+                                <form method="POST" style="display: inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="direction" value="right">
+                                    <button type="submit" class="btn btn-outline-primary btn-control">
+                                        Вправо →
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="mt-2">
+                                <form method="POST" style="display: inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="direction" value="down">
+                                    <button type="submit" class="btn btn-outline-primary btn-control">
+                                        ↓ Вниз
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Кнопки управления игрой -->
+                        <div class="text-center">
+                            <form method="POST" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="new_game" value="1">
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    🚀 Новая игра
+                                </button>
+                            </form>
+                            
+                            <a href="{% url 'games_index' %}" class="btn btn-outline-secondary btn-lg ms-2">
+                                ← Назад к играм
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Правила -->
+                    <div class="alert alert-info">
+                        <h5>📋 Правила игры:</h5>
+                        <ul class="mb-0">
+                            <li>Используйте стрелки для перемещения плиток</li>
+                            <li>При столкновении двух одинаковых плиток они объединяются в одну</li>
+                            <li>После каждого хода появляется новая плитка (2 или 4)</li>
+                            <li>Цель: создать плитку со значением <strong>2048</strong></li>
+                            <li>Игра заканчивается, когда нет возможных ходов</li>
+                        </ul>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.game-board {
+    background: #bbada0;
+    border-radius: 10px;
+    padding: 15px;
+    margin: 0 auto;
+    max-width: 500px;
+}
+
+.grid-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.grid-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.grid-cell {
+    width: 100px;
+    height: 100px;
+    background: rgba(238, 228, 218, 0.35);
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tile {
+    width: 100%;
+    height: 100%;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: bold;
+    color: #776e65;
+    opacity: 0;
+    transition: all 0.15s ease;
+}
+
+.tile-show {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Цвета плиток */
+.tile-2 { background: #eee4da; }
+.tile-4 { background: #ede0c8; }
+.tile-8 { background: #f2b179; color: #f9f6f2; }
+.tile-16 { background: #f59563; color: #f9f6f2; }
+.tile-32 { background: #f67c5f; color: #f9f6f2; }
+.tile-64 { background: #f65e3b; color: #f9f6f2; }
+.tile-128 { background: #edcf72; color: #f9f6f2; font-size: 1.8rem; }
+.tile-256 { background: #edcc61; color: #f9f6f2; font-size: 1.8rem; }
+.tile-512 { background: #edc850; color: #f9f6f2; font-size: 1.8rem; }
+.tile-1024 { background: #edc53f; color: #f9f6f2; font-size: 1.5rem; }
+.tile-2048 { background: #edc22e; color: #f9f6f2; font-size: 1.5rem; }
+
+.btn-control {
+    padding: 10px 20px;
+    font-size: 1.1rem;
+    margin: 5px;
+    min-width: 100px;
+}
+
+.btn-control:hover {
+    transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+    .grid-cell {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .tile {
+        font-size: 1.5rem;
+    }
+    
+    .tile-128, .tile-256, .tile-512 {
+        font-size: 1.3rem;
+    }
+    
+    .tile-1024, .tile-2048 {
+        font-size: 1.1rem;
+    }
+    
+    .btn-control {
+        padding: 8px 15px;
+        min-width: 80px;
+        font-size: 0.9rem;
+    }
+}
+</style>
+{% endblock %}

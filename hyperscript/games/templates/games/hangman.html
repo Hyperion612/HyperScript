@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+
+{% block title %}Виселица - HyperScript{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">🎮 Виселица</h3>
+                </div>
+                
+                <div class="card-body text-center">
+                    
+                    <!-- Статистика -->
+                    <div class="row mb-4">
+                        <div class="col-6">
+                            <div class="border rounded p-2">
+                                <small>Ошибок</small>
+                                <div class="h4 mb-0 {% if wrong_guesses >= 5 %}text-danger{% else %}text-warning{% endif %}">
+                                    {{ wrong_guesses }} / {{ max_wrong }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="border rounded p-2">
+                                <small>Длина слова</small>
+                                <div class="h4 mb-0 text-info">{{ word_length }} букв</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Виселица (ASCII арт) -->
+                    <div class="mb-4" style="font-family: monospace; font-size: 1.2rem;">
+                        <pre>
+  ┌─────┐
+  │     {{ "O" if wrong_guesses > 0 else " " }}
+  │    {{ "/" if wrong_guesses > 2 else " " }}{{ "|" if wrong_guesses > 1 else " " }}{{ "\\" if wrong_guesses > 3 else " " }}
+  │    {{ "/" if wrong_guesses > 4 else " " }} {{ "\\" if wrong_guesses > 5 else " " }}
+  │
+┌─┴─┐
+                        </pre>
+                    </div>
+                    
+                    <!-- Загаданное слово -->
+                    <div class="mb-4">
+                        <h2 class="display-4 letter-spacing-2">{{ display_word }}</h2>
+                        <p class="text-muted">Угадайте слово по буквам</p>
+                    </div>
+                    
+                    {% if game_over %}
+                        <!-- Результат игры -->
+                        <div class="alert {% if won %}alert-success{% else %}alert-danger{% endif %} mb-4">
+                            <h4>
+                                {% if won %}
+                                    🎉 Поздравляем! Вы выиграли!
+                                {% else %}
+                                    💀 Игра окончена!
+                                {% endif %}
+                            </h4>
+                            <p class="mb-0">
+                                Загаданное слово: <strong>{{ display_word|replace:"_ " }}</strong>
+                            </p>
+                        </div>
+                        
+                        <form method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="new_game" value="1">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                🚀 Новая игра
+                            </button>
+                        </form>
+                        
+                    {% else %}
+                        <!-- Выбор букв -->
+                        <div class="mb-4">
+                            <h5>Выберите букву:</h5>
+                            <div class="d-flex flex-wrap justify-content-center gap-2 mb-3">
+                                {% for letter in remaining_letters|slice:":13" %}
+                                <form method="POST" style="display: inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="letter" value="{{ letter }}">
+                                    <button type="submit" class="btn btn-outline-primary btn-letter">
+                                        {{ letter }}
+                                    </button>
+                                </form>
+                                {% endfor %}
+                            </div>
+                            <div class="d-flex flex-wrap justify-content-center gap-2">
+                                {% for letter in remaining_letters|slice:"13:" %}
+                                <form method="POST" style="display: inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="letter" value="{{ letter }}">
+                                    <button type="submit" class="btn btn-outline-primary btn-letter">
+                                        {{ letter }}
+                                    </button>
+                                </form>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <!-- Уже угаданные буквы -->
+                        {% if guessed_letters %}
+                        <div class="mb-4">
+                            <small>Использованные буквы:</small>
+                            <p class="h5 text-muted">{{ guessed_letters }}</p>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Подсказка -->
+                        <div class="alert alert-info">
+                            <small>
+                                💡 <strong>Правила:</strong> Угадывайте слово по буквам. 
+                                Максимум {{ max_wrong }} ошибок. Все буквы заглавные, русского алфавита.
+                            </small>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Навигация -->
+                    <div class="mt-4">
+                        <a href="{% url 'games_index' %}" class="btn btn-outline-secondary">
+                            ← Назад к играм
+                        </a>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.letter-spacing-2 {
+    letter-spacing: 10px;
+}
+
+.btn-letter {
+    width: 45px;
+    height: 45px;
+    font-weight: bold;
+    transition: all 0.2s;
+}
+
+.btn-letter:hover {
+    transform: scale(1.1);
+}
+
+pre {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 10px;
+    display: inline-block;
+}
+
+@media (max-width: 768px) {
+    .letter-spacing-2 {
+        letter-spacing: 5px;
+        font-size: 1.8rem;
+    }
+    
+    .btn-letter {
+        width: 40px;
+        height: 40px;
+        font-size: 0.9rem;
+    }
+}
+</style>
+{% endblock %}
