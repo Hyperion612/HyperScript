@@ -8,485 +8,97 @@
         <div class="col-md-8">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title mb-0">🎮 Камень-Ножницы-Бумага</h3>
+                    <h3 class="card-title mb-0">
+                        🎮 Камень-Ножницы-Бумага
+                        {% if result %}
+                            <span class="float-end h6">Раунд {{ round }}</span>
+                        {% endif %}
+                    </h3>
                 </div>
+                
                 <div class="card-body text-center">
+                    
                     <!-- Статистика -->
                     <div class="row mb-4">
                         <div class="col-4">
                             <div class="border rounded p-2">
                                 <small>Победы</small>
-                                <div class="h4 mb-0 text-success" id="wins">0</div>
+                                <div class="h4 mb-0 text-success">{{ wins }}</div>
                             </div>
                         </div>
                         <div class="col-4">
                             <div class="border rounded p-2">
                                 <small>Поражения</small>
-                                <div class="h4 mb-0 text-danger" id="losses">0</div>
+                                <div class="h4 mb-0 text-danger">{{ losses }}</div>
                             </div>
                         </div>
                         <div class="col-4">
                             <div class="border rounded p-2">
                                 <small>Ничьи</small>
-                                <div class="h4 mb-0 text-warning" id="draws">0</div>
+                                <div class="h4 mb-0 text-warning">{{ draws }}</div>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Кнопка Начать -->
-                    <div class="mb-4" id="startButtonContainer">
-                        <button class="btn btn-success btn-lg" id="startGameBtn">
-                            🚀 Начать игру
-                        </button>
-                    </div>
-
-                    <!-- Выбор хода (изначально скрыт) -->
-                    <div id="gameArea" style="display: none;">
-                        <div class="mb-4">
-                            <h5>Выберите ваш ход:</h5>
-                            <div class="btn-group btn-group-lg" role="group">
-                                <button type="button" class="btn btn-outline-primary choice-btn" data-choice="rock">
+                    
+                    {% if result %}
+                        <!-- Показать результат предыдущего раунда -->
+                        <div class="alert alert-{{ result_class }} mb-4">
+                            <h4>{{ result_message }}</h4>
+                            <p class="mb-0">
+                                Вы выбрали: <strong>{{ user_choice_name }}</strong><br>
+                                Компьютер: <strong>{{ computer_choice_name }}</strong>
+                            </p>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Выбор хода -->
+                    <div class="mb-4">
+                        <h5>{% if result %}Следующий раунд:{% else %}Выберите ваш ход:{% endif %}</h5>
+                        <div class="btn-group btn-group-lg" role="group">
+                            <form method="POST" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="choice" value="rock">
+                                <button type="submit" class="btn btn-outline-primary">
                                     ✊ Камень
                                 </button>
-                                <button type="button" class="btn btn-outline-success choice-btn" data-choice="paper">
+                            </form>
+                            
+                            <form method="POST" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="choice" value="paper">
+                                <button type="submit" class="btn btn-outline-success">
                                     ✋ Бумага
                                 </button>
-                                <button type="button" class="btn btn-outline-warning choice-btn" data-choice="scissors">
+                            </form>
+                            
+                            <form method="POST" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="choice" value="scissors">
+                                <button type="submit" class="btn btn-outline-warning">
                                     ✌️ Ножницы
                                 </button>
-                            </div>
+                            </form>
                         </div>
                     </div>
-
-                    <!-- Результат раунда -->
-                    <div id="resultArea" style="display: none;">
-                        <div class="row align-items-center mb-4">
-                            <div class="col-5 text-end">
-                                <div class="h3" id="userChoiceDisplay"></div>
-                                <small>Ваш ход</small>
-                            </div>
-                            <div class="col-2">
-                                <div class="h4 text-muted">VS</div>
-                            </div>
-                            <div class="col-5 text-start">
-                                <div class="h3" id="computerChoiceDisplay"></div>
-                                <small>Компьютер</small>
-                            </div>
-                        </div>
-
-                        <div class="alert mb-4" id="resultAlert">
-                            <h4 id="resultText" class="mb-0"></h4>
-                        </div>
-
-                        <div class="d-grid gap-2 d-md-block">
-                            <button class="btn btn-primary btn-lg me-2" id="playAgainBtn">
-                                🔄 Играть снова
+                    
+                    <!-- Кнопки управления -->
+                    <div class="mt-4">
+                        <form method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="new_game">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                🚀 Новая игра
                             </button>
-                            <button class="btn btn-outline-secondary btn-lg" id="backToMenuBtn">
-                                📋 В меню
-                            </button>
-                        </div>
+                        </form>
+                        
+                        <a href="{% url 'games_index' %}" class="btn btn-outline-secondary mt-2">
+                            ← Назад к играм
+                        </a>
                     </div>
-
-                    <!-- Стартовый экран -->
-                    <div id="startArea">
-                        <div class="py-4">
-                            <!-- Заменил Font Awesome на эмодзи -->
-                            <div class="display-1 mb-3">✊✋✌️</div>
-                            <h4>Готовы сыграть?</h4>
-                            <p class="text-muted">Нажмите "Начать игру" чтобы сыграть в классическую игру против компьютера</p>
-                            <div class="mt-4">
-                                <div class="row text-center">
-                                    <div class="col-4">
-                                        <!-- Заменил Font Awesome на эмодзи -->
-                                        <div class="h1 text-primary mb-2">🤖</div>
-                                        <div class="fw-bold">Против ИИ</div>
-                                        <small class="text-muted">Умный компьютер</small>
-                                    </div>
-                                    <div class="col-4">
-                                        <!-- Заменил Font Awesome на эмодзи -->
-                                        <div class="h1 text-warning mb-2">🏆</div>
-                                        <div class="fw-bold">Бесконечно</div>
-                                        <small class="text-muted">Сколько угодно раундов</small>
-                                    </div>
-                                    <div class="col-4">
-                                        <!-- Заменил Font Awesome на эмодзи -->
-                                        <div class="h1 text-success mb-2">📈</div>
-                                        <div class="fw-bold">Статистика</div>
-                                        <small class="text-muted">Следите за прогрессом</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    
                 </div>
             </div>
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-// Упрощенная и надежная версия игры
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🎮 Игра "Камень-Ножницы-Бумага" загружается...');
-    
-    // Основные элементы
-    const elements = {
-        startBtn: document.getElementById('startGameBtn'),
-        gameArea: document.getElementById('gameArea'),
-        resultArea: document.getElementById('resultArea'),
-        startArea: document.getElementById('startArea'),
-        playAgainBtn: document.getElementById('playAgainBtn'),
-        backToMenuBtn: document.getElementById('backToMenuBtn'),
-        choiceBtns: document.querySelectorAll('.choice-btn'),
-        userChoiceDisplay: document.getElementById('userChoiceDisplay'),
-        computerChoiceDisplay: document.getElementById('computerChoiceDisplay'),
-        resultAlert: document.getElementById('resultAlert'),
-        resultText: document.getElementById('resultText'),
-        winsEl: document.getElementById('wins'),
-        lossesEl: document.getElementById('losses'),
-        drawsEl: document.getElementById('draws')
-    };
-    
-    // Проверяем все элементы
-    console.log('Проверка элементов:');
-    Object.entries(elements).forEach(([name, element]) => {
-        if (Array.isArray(element) || (element && element.length)) {
-            console.log(`  ${name}: ${element.length} элементов`);
-        } else {
-            console.log(`  ${name}: ${element ? '✓ найден' : '✗ не найден'}`);
-        }
-    });
-    
-    // Статистика игры
-    let gameState = {
-        wins: 0,
-        losses: 0,
-        draws: 0,
-        isPlaying: false
-    };
-    
-    // --- ОБРАБОТЧИКИ СОБЫТИЙ ---
-    
-    // 1. Кнопка "Начать игру"
-    if (elements.startBtn) {
-        elements.startBtn.addEventListener('click', function() {
-            console.log('▶ Нажата кнопка "Начать игру"');
-            startGame();
-        });
-        
-        // Добавляем визуальную обратную связь
-        elements.startBtn.addEventListener('mouseenter', function() {
-            this.style.transform = 'scale(1.05)';
-        });
-        
-        elements.startBtn.addEventListener('mouseleave', function() {
-            this.style.transform = 'scale(1)';
-        });
-    }
-    
-    // 2. Кнопки выбора хода
-    if (elements.choiceBtns.length > 0) {
-        elements.choiceBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
-                if (!gameState.isPlaying) {
-                    alert('Сначала нажмите "Начать игру"!');
-                    return;
-                }
-                
-                const userChoice = this.getAttribute('data-choice');
-                console.log(`🎯 Выбор игрока: ${userChoice}`);
-                playRound(userChoice);
-            });
-            
-            // Анимация при наведении
-            btn.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-3px)';
-                this.style.boxShadow = '0 5px 15px rgba(0,0,0,0.2)';
-            });
-            
-            btn.addEventListener('mouseleave', function() {
-                this.style.transform = 'translateY(0)';
-                this.style.boxShadow = 'none';
-            });
-        });
-    }
-    
-    // 3. Кнопка "Играть снова"
-    if (elements.playAgainBtn) {
-        elements.playAgainBtn.addEventListener('click', function() {
-            console.log('🔄 Играть снова');
-            showGameArea();
-        });
-    }
-    
-    // 4. Кнопка "В меню"
-    if (elements.backToMenuBtn) {
-        elements.backToMenuBtn.addEventListener('click', function() {
-            console.log('📋 Возврат в меню');
-            resetToMenu();
-        });
-    }
-    
-    // --- ФУНКЦИИ ИГРЫ ---
-    
-    function startGame() {
-        console.log('🚀 Запуск новой игры');
-        
-        gameState.isPlaying = true;
-        gameState.wins = 0;
-        gameState.losses = 0;
-        gameState.draws = 0;
-        
-        // Показываем игровую область
-        if (elements.startArea) {
-            elements.startArea.style.display = 'none';
-        }
-        
-        if (elements.startBtn) {
-            elements.startBtn.style.display = 'none';
-        }
-        
-        if (elements.gameArea) {
-            elements.gameArea.style.display = 'block';
-            elements.gameArea.style.opacity = '0';
-            setTimeout(() => {
-                elements.gameArea.style.opacity = '1';
-                elements.gameArea.style.transition = 'opacity 0.5s ease';
-            }, 10);
-        }
-        
-        if (elements.resultArea) {
-            elements.resultArea.style.display = 'none';
-        }
-        
-        updateStatsDisplay();
-        console.log('✅ Игра начата!');
-    }
-    
-    function playRound(userChoice) {
-        console.log(`🎮 Раунд: игрок выбрал ${userChoice}`);
-        
-        // Возможные ходы
-        const choices = ['rock', 'paper', 'scissors'];
-        const choiceNames = {
-            'rock': '✊ Камень',
-            'paper': '✋ Бумага',
-            'scissors': '✌️ Ножницы'
-        };
-        
-        // Выбор компьютера
-        const computerChoice = choices[Math.floor(Math.random() * 3)];
-        console.log(`💻 Компьютер выбрал: ${computerChoice}`);
-        
-        // Определяем победителя
-        let result, message, alertClass;
-        
-        if (userChoice === computerChoice) {
-            result = 'draw';
-            message = '🤝 Ничья!';
-            alertClass = 'alert-warning';
-            gameState.draws++;
-            console.log('🤝 Результат: ничья');
-        } else if (
-            (userChoice === 'rock' && computerChoice === 'scissors') ||
-            (userChoice === 'scissors' && computerChoice === 'paper') ||
-            (userChoice === 'paper' && computerChoice === 'rock')
-        ) {
-            result = 'win';
-            message = '🎉 Вы победили!';
-            alertClass = 'alert-success';
-            gameState.wins++;
-            console.log('🎉 Результат: победа игрока');
-        } else {
-            result = 'lose';
-            message = '💻 Компьютер победил!';
-            alertClass = 'alert-danger';
-            gameState.losses++;
-            console.log('💻 Результат: победа компьютера');
-        }
-        
-        // Обновляем статистику
-        updateStatsDisplay();
-        
-        // Показываем результат
-        showRoundResult(userChoice, computerChoice, choiceNames, message, alertClass);
-    }
-    
-    function showRoundResult(userChoice, computerChoice, choiceNames, message, alertClass) {
-        // Обновляем отображение выбора
-        if (elements.userChoiceDisplay) {
-            elements.userChoiceDisplay.textContent = choiceNames[userChoice];
-        }
-        
-        if (elements.computerChoiceDisplay) {
-            elements.computerChoiceDisplay.textContent = choiceNames[computerChoice];
-        }
-        
-        // Обновляем сообщение результата
-        if (elements.resultAlert && elements.resultText) {
-            elements.resultAlert.className = `alert ${alertClass}`;
-            elements.resultText.textContent = message;
-        }
-        
-        // Переключаем экраны
-        if (elements.gameArea) {
-            elements.gameArea.style.display = 'none';
-        }
-        
-        if (elements.resultArea) {
-            elements.resultArea.style.display = 'block';
-            elements.resultArea.style.opacity = '0';
-            
-            // Плавное появление
-            setTimeout(() => {
-                elements.resultArea.style.opacity = '1';
-                elements.resultArea.style.transition = 'opacity 0.5s ease';
-            }, 10);
-        }
-        
-        console.log('📊 Результат показан');
-    }
-    
-    function showGameArea() {
-        console.log('🔄 Возврат к выбору хода');
-        
-        if (elements.gameArea) {
-            elements.gameArea.style.display = 'block';
-            elements.gameArea.style.opacity = '0';
-            setTimeout(() => {
-                elements.gameArea.style.opacity = '1';
-            }, 10);
-        }
-        
-        if (elements.resultArea) {
-            elements.resultArea.style.display = 'none';
-        }
-    }
-    
-    function resetToMenu() {
-        console.log('📋 Сброс к начальному экрану');
-        
-        gameState.isPlaying = false;
-        
-        if (elements.startArea) {
-            elements.startArea.style.display = 'block';
-        }
-        
-        if (elements.startBtn) {
-            elements.startBtn.style.display = 'block';
-        }
-        
-        if (elements.gameArea) {
-            elements.gameArea.style.display = 'none';
-        }
-        
-        if (elements.resultArea) {
-            elements.resultArea.style.display = 'none';
-        }
-        
-        // Сброс статистики
-        gameState.wins = 0;
-        gameState.losses = 0;
-        gameState.draws = 0;
-        updateStatsDisplay();
-    }
-    
-    function updateStatsDisplay() {
-        console.log(`📈 Статистика: ${gameState.wins}-${gameState.losses}-${gameState.draws}`);
-        
-        if (elements.winsEl) {
-            elements.winsEl.textContent = gameState.wins;
-        }
-        
-        if (elements.lossesEl) {
-            elements.lossesEl.textContent = gameState.losses;
-        }
-        
-        if (elements.drawsEl) {
-            elements.drawsEl.textContent = gameState.draws;
-        }
-    }
-    
-    // Сообщение об успешной загрузке
-    console.log('✅ Игра "Камень-Ножницы-Бумага" готова к работе!');
-    console.log('👉 Нажмите кнопку "Начать игру" чтобы начать');
-});
-</script>
-
-<style>
-/* Стили для игры */
-.choice-btn {
-    transition: all 0.3s ease;
-    min-width: 120px;
-    padding: 15px 20px;
-    border-radius: 10px;
-    font-weight: bold;
-    margin: 5px;
-}
-
-.choice-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-}
-
-#userChoiceDisplay, #computerChoiceDisplay {
-    font-size: 2.5rem;
-    margin-bottom: 10px;
-}
-
-.alert {
-    border: none;
-    border-radius: 15px;
-    padding: 20px;
-    margin: 20px 0;
-}
-
-#startGameBtn {
-    padding: 15px 40px;
-    font-size: 1.3rem;
-    border-radius: 50px;
-    transition: all 0.3s ease;
-}
-
-#startGameBtn:hover {
-    transform: scale(1.05);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-}
-
-/* Плавные переходы */
-#gameArea, #resultArea, #startArea {
-    transition: opacity 0.5s ease;
-}
-
-/* Адаптивность */
-@media (max-width: 768px) {
-    .btn-group {
-        flex-direction: column;
-        width: 100%;
-    }
-    
-    .choice-btn {
-        width: 100%;
-        margin: 5px 0;
-    }
-    
-    #userChoiceDisplay, #computerChoiceDisplay {
-        font-size: 2rem;
-    }
-    
-    .row.align-items-center {
-        flex-direction: column;
-        text-align: center;
-    }
-    
-    .col-5, .col-2 {
-        width: 100%;
-        text-align: center !important;
-        margin-bottom: 10px;
-    }
-}
-</style>
 {% endblock %}
