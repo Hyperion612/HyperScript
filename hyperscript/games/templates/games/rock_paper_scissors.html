@@ -8,12 +8,7 @@
         <div class="col-md-8">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title mb-0">
-                        🎮 Камень-Ножницы-Бумага
-                        {% if result %}
-                            <span class="float-end h6">Раунд {{ round }}</span>
-                        {% endif %}
-                    </h3>
+                    <h3 class="card-title mb-0">🎮 Камень-Ножницы-Бумага</h3>
                 </div>
                 
                 <div class="card-body text-center">
@@ -23,77 +18,88 @@
                         <div class="col-4">
                             <div class="border rounded p-2">
                                 <small>Победы</small>
-                                <div class="h4 mb-0 text-success">{{ wins }}</div>
+                                <div class="h4 mb-0 text-success" id="wins">0</div>
                             </div>
                         </div>
                         <div class="col-4">
                             <div class="border rounded p-2">
                                 <small>Поражения</small>
-                                <div class="h4 mb-0 text-danger">{{ losses }}</div>
+                                <div class="h4 mb-0 text-danger" id="losses">0</div>
                             </div>
                         </div>
                         <div class="col-4">
                             <div class="border rounded p-2">
                                 <small>Ничьи</small>
-                                <div class="h4 mb-0 text-warning">{{ draws }}</div>
+                                <div class="h4 mb-0 text-warning" id="draws">0</div>
                             </div>
                         </div>
                     </div>
                     
-                    {% if result %}
-                        <!-- Показать результат предыдущего раунда -->
-                        <div class="alert alert-{{ result_class }} mb-4">
-                            <h4>{{ result_message }}</h4>
-                            <p class="mb-0">
-                                Вы выбрали: <strong>{{ user_choice_name }}</strong><br>
-                                Компьютер: <strong>{{ computer_choice_name }}</strong>
-                            </p>
-                        </div>
-                    {% endif %}
+                    <!-- Основная кнопка -->
+                    <div class="mb-4" id="startSection">
+                        <button class="btn btn-success btn-lg" id="startBtn" onclick="startGame()">
+                            🚀 Начать игру
+                        </button>
+                    </div>
                     
-                    <!-- Выбор хода -->
-                    <div class="mb-4">
-                        <h5>{% if result %}Следующий раунд:{% else %}Выберите ваш ход:{% endif %}</h5>
-                        <div class="btn-group btn-group-lg" role="group">
-                            <form method="POST" style="display: inline;">
-                                {% csrf_token %}
-                                <input type="hidden" name="choice" value="rock">
-                                <button type="submit" class="btn btn-outline-primary">
+                    <!-- Игровая область (скрыта сначала) -->
+                    <div id="gameSection" style="display: none;">
+                        <div class="mb-4">
+                            <h5>Выберите ваш ход:</h5>
+                            <div class="btn-group btn-group-lg" role="group">
+                                <button type="button" class="btn btn-outline-primary" onclick="play('rock')">
                                     ✊ Камень
                                 </button>
-                            </form>
-                            
-                            <form method="POST" style="display: inline;">
-                                {% csrf_token %}
-                                <input type="hidden" name="choice" value="paper">
-                                <button type="submit" class="btn btn-outline-success">
+                                <button type="button" class="btn btn-outline-success" onclick="play('paper')">
                                     ✋ Бумага
                                 </button>
-                            </form>
-                            
-                            <form method="POST" style="display: inline;">
-                                {% csrf_token %}
-                                <input type="hidden" name="choice" value="scissors">
-                                <button type="submit" class="btn btn-outline-warning">
+                                <button type="button" class="btn btn-outline-warning" onclick="play('scissors')">
                                     ✌️ Ножницы
                                 </button>
-                            </form>
+                            </div>
                         </div>
                     </div>
                     
-                    <!-- Кнопки управления -->
-                    <div class="mt-4">
-                        <form method="POST">
-                            {% csrf_token %}
-                            <input type="hidden" name="action" value="new_game">
-                            <button type="submit" class="btn btn-success btn-lg">
-                                🚀 Новая игра
-                            </button>
-                        </form>
+                    <!-- Результат (скрыт сначала) -->
+                    <div id="resultSection" style="display: none;">
+                        <div class="mb-4">
+                            <h3 id="resultMessage"></h3>
+                            <div class="row align-items-center mt-3">
+                                <div class="col-5 text-end">
+                                    <div class="h2" id="playerChoice"></div>
+                                    <small>Ваш выбор</small>
+                                </div>
+                                <div class="col-2">
+                                    <div class="h4 text-muted">VS</div>
+                                </div>
+                                <div class="col-5 text-start">
+                                    <div class="h2" id="computerChoice"></div>
+                                    <small>Компьютер</small>
+                                </div>
+                            </div>
+                        </div>
                         
-                        <a href="{% url 'games_index' %}" class="btn btn-outline-secondary mt-2">
-                            ← Назад к играм
-                        </a>
+                        <div class="d-grid gap-2 d-md-block">
+                            <button class="btn btn-primary btn-lg me-2" onclick="playAgain()">
+                                🔄 Играть снова
+                            </button>
+                            <button class="btn btn-outline-secondary btn-lg" onclick="backToMenu()">
+                                📋 В меню
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Правила -->
+                    <div class="mt-4">
+                        <div class="alert alert-info">
+                            <h5>📋 Правила игры:</h5>
+                            <ul class="mb-0">
+                                <li><strong>✊ Камень</strong> бьет <strong>✌️ Ножницы</strong></li>
+                                <li><strong>✌️ Ножницы</strong> бьют <strong>✋ Бумагу</strong></li>
+                                <li><strong>✋ Бумага</strong> бьет <strong>✊ Камень</strong></li>
+                                <li>Одинаковый выбор = <strong>Ничья!</strong></li>
+                            </ul>
+                        </div>
                     </div>
                     
                 </div>
@@ -101,4 +107,145 @@
         </div>
     </div>
 </div>
+
+<!-- Простой и надежный JavaScript -->
+<script>
+// Глобальные переменные
+let wins = 0;
+let losses = 0;
+let draws = 0;
+
+// Функции игры
+function startGame() {
+    console.log('Игра начата!');
+    
+    // Сбрасываем статистику
+    wins = 0;
+    losses = 0;
+    draws = 0;
+    updateStats();
+    
+    // Переключаем экраны
+    document.getElementById('startSection').style.display = 'none';
+    document.getElementById('gameSection').style.display = 'block';
+    document.getElementById('resultSection').style.display = 'none';
+}
+
+function play(playerChoice) {
+    console.log('Игрок выбрал:', playerChoice);
+    
+    // Варианты для компьютера
+    const choices = ['rock', 'paper', 'scissors'];
+    const choiceNames = {
+        'rock': '✊ Камень',
+        'paper': '✋ Бумага',
+        'scissors': '✌️ Ножницы'
+    };
+    
+    // Компьютер выбирает случайно
+    const computerChoice = choices[Math.floor(Math.random() * 3)];
+    console.log('Компьютер выбрал:', computerChoice);
+    
+    // Отображаем выборы
+    document.getElementById('playerChoice').textContent = choiceNames[playerChoice];
+    document.getElementById('computerChoice').textContent = choiceNames[computerChoice];
+    
+    // Определяем победителя
+    let result = '';
+    let resultClass = '';
+    
+    if (playerChoice === computerChoice) {
+        result = '🤝 Ничья!';
+        resultClass = 'warning';
+        draws++;
+        console.log('Результат: Ничья');
+    } else if (
+        (playerChoice === 'rock' && computerChoice === 'scissors') ||
+        (playerChoice === 'scissors' && computerChoice === 'paper') ||
+        (playerChoice === 'paper' && computerChoice === 'rock')
+    ) {
+        result = '🎉 Вы победили!';
+        resultClass = 'success';
+        wins++;
+        console.log('Результат: Победа игрока');
+    } else {
+        result = '💻 Компьютер победил!';
+        resultClass = 'danger';
+        losses++;
+        console.log('Результат: Победа компьютера');
+    }
+    
+    // Обновляем статистику
+    updateStats();
+    
+    // Показываем результат
+    document.getElementById('resultMessage').textContent = result;
+    document.getElementById('resultMessage').className = 'alert alert-' + resultClass;
+    
+    // Переключаем экраны
+    document.getElementById('gameSection').style.display = 'none';
+    document.getElementById('resultSection').style.display = 'block';
+}
+
+function updateStats() {
+    document.getElementById('wins').textContent = wins;
+    document.getElementById('losses').textContent = losses;
+    document.getElementById('draws').textContent = draws;
+}
+
+function playAgain() {
+    // Возвращаем к выбору хода
+    document.getElementById('gameSection').style.display = 'block';
+    document.getElementById('resultSection').style.display = 'none';
+}
+
+function backToMenu() {
+    // Возвращаем к начальному экрану
+    document.getElementById('startSection').style.display = 'block';
+    document.getElementById('gameSection').style.display = 'none';
+    document.getElementById('resultSection').style.display = 'none';
+}
+
+// Проверка загрузки
+console.log('✅ Игра "Камень-Ножницы-Бумага" загружена и готова!');
+</script>
+
+<style>
+/* Стили для игры */
+.btn {
+    transition: all 0.2s ease;
+    margin: 5px;
+    min-width: 120px;
+}
+
+.btn:hover {
+    transform: scale(1.05);
+}
+
+#playerChoice, #computerChoice {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+}
+
+.alert {
+    border-radius: 10px;
+    padding: 15px;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .btn-group-lg {
+        flex-direction: column;
+    }
+    
+    .btn {
+        width: 100%;
+        margin: 5px 0;
+    }
+    
+    #playerChoice, #computerChoice {
+        font-size: 2rem;
+    }
+}
+</style>
 {% endblock %}
