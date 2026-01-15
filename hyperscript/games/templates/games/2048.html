@@ -9,26 +9,29 @@
             <div class="card">
                 <div class="card-header">
                     <h3 class="card-title mb-0">🎮 2048</h3>
+                    <div class="float-end">
+                        <span class="badge bg-warning">Цель: 2048</span>
+                    </div>
                 </div>
                 
                 <div class="card-body">
                     
-                    <!-- Статистика и управление -->
+                    <!-- Статистика -->
                     <div class="row mb-4">
                         <div class="col-md-4 mb-3">
-                            <div class="border rounded p-3 text-center">
+                            <div class="border rounded p-3 text-center bg-light">
                                 <small>Счет</small>
                                 <div class="h3 mb-0 text-primary">{{ score }}</div>
                             </div>
                         </div>
                         <div class="col-md-4 mb-3">
-                            <div class="border rounded p-3 text-center">
+                            <div class="border rounded p-3 text-center bg-light">
                                 <small>Рекорд</small>
                                 <div class="h3 mb-0 text-warning">{{ high_score }}</div>
                             </div>
                         </div>
                         <div class="col-md-4 mb-3">
-                            <div class="border rounded p-3 text-center">
+                            <div class="border rounded p-3 text-center bg-light">
                                 <small>Ходы</small>
                                 <div class="h3 mb-0 text-info">{{ moves }}</div>
                             </div>
@@ -52,13 +55,13 @@
                     <!-- Игровое поле -->
                     <div class="game-board mb-4">
                         <div class="grid-container">
-                            {% for i in range %}
+                            {% for row in grid %}
                             <div class="grid-row">
-                                {% for j in range %}
+                                {% for cell in row %}
                                 <div class="grid-cell">
-                                    <div class="tile tile-{{ grid.i.j|default:0 }} {% if grid.i.j %}tile-show{% endif %}">
-                                        {% if grid.i.j %}
-                                            {{ grid.i.j }}
+                                    <div class="tile tile-{{ cell }} {% if cell != 0 %}tile-show{% endif %}">
+                                        {% if cell != 0 %}
+                                            {{ cell }}
                                         {% endif %}
                                     </div>
                                 </div>
@@ -73,40 +76,47 @@
                         {% if not game_over %}
                         <div class="text-center mb-3">
                             <h5>Управление:</h5>
-                            <div class="btn-group" role="group">
-                                <form method="POST" style="display: inline;">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="direction" value="up">
-                                    <button type="submit" class="btn btn-outline-primary btn-control">
-                                        ↑ Вверх
-                                    </button>
-                                </form>
-                            </div>
-                            <div class="mt-2">
-                                <form method="POST" style="display: inline;">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="direction" value="left">
-                                    <button type="submit" class="btn btn-outline-primary btn-control">
-                                        ← Влево
-                                    </button>
-                                </form>
+                            <div class="d-flex flex-column align-items-center">
+                                <!-- Вверх -->
+                                <div class="mb-2">
+                                    <form method="POST" style="display: inline;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="direction" value="up">
+                                        <button type="submit" class="btn btn-outline-primary btn-control">
+                                            ↑ Вверх
+                                        </button>
+                                    </form>
+                                </div>
                                 
-                                <form method="POST" style="display: inline;">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="direction" value="right">
-                                    <button type="submit" class="btn btn-outline-primary btn-control">
-                                        Вправо →
-                                    </button>
-                                </form>
-                            </div>
-                            <div class="mt-2">
-                                <form method="POST" style="display: inline;">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="direction" value="down">
-                                    <button type="submit" class="btn btn-outline-primary btn-control">
-                                        ↓ Вниз
-                                    </button>
-                                </form>
+                                <!-- Влево и вправо -->
+                                <div class="d-flex mb-2">
+                                    <form method="POST" style="display: inline;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="direction" value="left">
+                                        <button type="submit" class="btn btn-outline-primary btn-control me-2">
+                                            ← Влево
+                                        </button>
+                                    </form>
+                                    
+                                    <form method="POST" style="display: inline;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="direction" value="right">
+                                        <button type="submit" class="btn btn-outline-primary btn-control">
+                                            Вправо →
+                                        </button>
+                                    </form>
+                                </div>
+                                
+                                <!-- Вниз -->
+                                <div>
+                                    <form method="POST" style="display: inline;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="direction" value="down">
+                                        <button type="submit" class="btn btn-outline-primary btn-control">
+                                            ↓ Вниз
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
                         </div>
                         {% endif %}
@@ -131,7 +141,7 @@
                     <div class="alert alert-info">
                         <h5>📋 Правила игры:</h5>
                         <ul class="mb-0">
-                            <li>Используйте стрелки для перемещения плиток</li>
+                            <li>Используйте кнопки для перемещения плиток</li>
                             <li>При столкновении двух одинаковых плиток они объединяются в одну</li>
                             <li>После каждого хода появляется новая плитка (2 или 4)</li>
                             <li>Цель: создать плитку со значением <strong>2048</strong></li>
@@ -146,6 +156,7 @@
 </div>
 
 <style>
+/* Основные стили игрового поля */
 .game-board {
     background: #bbada0;
     border-radius: 10px;
@@ -174,6 +185,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
 }
 
 .tile {
@@ -188,38 +200,114 @@
     color: #776e65;
     opacity: 0;
     transition: all 0.15s ease;
+    position: absolute;
+    top: 0;
+    left: 0;
 }
 
 .tile-show {
     opacity: 1;
     transform: scale(1);
+    animation: appear 0.2s ease;
+}
+
+@keyframes appear {
+    0% { opacity: 0; transform: scale(0.5); }
+    100% { opacity: 1; transform: scale(1); }
 }
 
 /* Цвета плиток */
-.tile-2 { background: #eee4da; }
-.tile-4 { background: #ede0c8; }
-.tile-8 { background: #f2b179; color: #f9f6f2; }
-.tile-16 { background: #f59563; color: #f9f6f2; }
-.tile-32 { background: #f67c5f; color: #f9f6f2; }
-.tile-64 { background: #f65e3b; color: #f9f6f2; }
-.tile-128 { background: #edcf72; color: #f9f6f2; font-size: 1.8rem; }
-.tile-256 { background: #edcc61; color: #f9f6f2; font-size: 1.8rem; }
-.tile-512 { background: #edc850; color: #f9f6f2; font-size: 1.8rem; }
-.tile-1024 { background: #edc53f; color: #f9f6f2; font-size: 1.5rem; }
-.tile-2048 { background: #edc22e; color: #f9f6f2; font-size: 1.5rem; }
+.tile-2 { 
+    background: #eee4da; 
+    font-size: 2.2rem;
+}
+.tile-4 { 
+    background: #ede0c8; 
+    font-size: 2.2rem;
+}
+.tile-8 { 
+    background: #f2b179; 
+    color: #f9f6f2;
+    font-size: 2rem;
+}
+.tile-16 { 
+    background: #f59563; 
+    color: #f9f6f2;
+    font-size: 1.9rem;
+}
+.tile-32 { 
+    background: #f67c5f; 
+    color: #f9f6f2;
+    font-size: 1.9rem;
+}
+.tile-64 { 
+    background: #f65e3b; 
+    color: #f9f6f2;
+    font-size: 1.8rem;
+}
+.tile-128 { 
+    background: #edcf72; 
+    color: #f9f6f2; 
+    font-size: 1.7rem;
+    box-shadow: 0 0 10px rgba(237, 207, 114, 0.5);
+}
+.tile-256 { 
+    background: #edcc61; 
+    color: #f9f6f2; 
+    font-size: 1.7rem;
+    box-shadow: 0 0 10px rgba(237, 204, 97, 0.5);
+}
+.tile-512 { 
+    background: #edc850; 
+    color: #f9f6f2; 
+    font-size: 1.7rem;
+    box-shadow: 0 0 10px rgba(237, 200, 80, 0.5);
+}
+.tile-1024 { 
+    background: #edc53f; 
+    color: #f9f6f2; 
+    font-size: 1.5rem;
+    box-shadow: 0 0 15px rgba(237, 197, 63, 0.5);
+}
+.tile-2048 { 
+    background: #edc22e; 
+    color: #f9f6f2; 
+    font-size: 1.5rem;
+    box-shadow: 0 0 20px rgba(237, 194, 46, 0.7);
+}
+.tile-4096 { 
+    background: #3c3a32; 
+    color: #f9f6f2; 
+    font-size: 1.4rem;
+}
+.tile-8192 { 
+    background: #202020; 
+    color: #f9f6f2; 
+    font-size: 1.4rem;
+}
 
+/* Кнопки управления */
 .btn-control {
-    padding: 10px 20px;
+    padding: 12px 25px;
     font-size: 1.1rem;
     margin: 5px;
-    min-width: 100px;
+    min-width: 120px;
+    transition: all 0.2s ease;
+    border-radius: 8px;
 }
 
 .btn-control:hover {
     transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
 }
 
+/* Адаптивность */
 @media (max-width: 768px) {
+    .game-board {
+        padding: 10px;
+        max-width: 100%;
+    }
+    
     .grid-cell {
         width: 70px;
         height: 70px;
@@ -229,19 +317,198 @@
         font-size: 1.5rem;
     }
     
-    .tile-128, .tile-256, .tile-512 {
+    .tile-2, .tile-4 {
+        font-size: 1.6rem;
+    }
+    
+    .tile-8, .tile-16, .tile-32 {
+        font-size: 1.4rem;
+    }
+    
+    .tile-64, .tile-128, .tile-256, .tile-512 {
         font-size: 1.3rem;
     }
     
-    .tile-1024, .tile-2048 {
+    .tile-1024, .tile-2048, .tile-4096, .tile-8192 {
         font-size: 1.1rem;
     }
     
     .btn-control {
-        padding: 8px 15px;
-        min-width: 80px;
+        padding: 10px 15px;
+        min-width: 90px;
         font-size: 0.9rem;
     }
+    
+    .btn-lg {
+        padding: 10px 20px;
+        font-size: 1rem;
+    }
+}
+
+/* Анимации */
+@keyframes merge {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.tile-merged {
+    animation: merge 0.3s ease;
+}
+
+/* Подсветка новых плиток */
+.tile-new {
+    animation: newTile 0.4s ease;
+}
+
+@keyframes newTile {
+    0% { opacity: 0; transform: scale(0); }
+    50% { opacity: 1; transform: scale(1.1); }
+    100% { opacity: 1; transform: scale(1); }
 }
 </style>
+
+<!-- JavaScript для анимаций -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🎮 Игра 2048 загружена');
+    
+    // Получаем данные из скрытого элемента
+    const gameData = document.getElementById('gameData2048');
+    const moves = parseInt(gameData.dataset.moves) || 0;
+    
+    // Добавляем анимации плиткам
+    const tiles = document.querySelectorAll('.tile-show');
+    tiles.forEach((tile, index) => {
+        // Задержка для последовательного появления
+        tile.style.animationDelay = (index * 0.05) + 's';
+        
+        // Добавляем класс для анимации появления
+        tile.classList.add('tile-new');
+        
+        // Если плитка большая (128+), добавляем мерцание
+        const value = parseInt(tile.textContent);
+        if (value >= 128) {
+            tile.style.animation = 'appear 0.2s ease, pulse 2s infinite';
+        }
+    });
+    
+    // Анимация для кнопок
+    document.querySelectorAll('.btn-control').forEach(btn => {
+        btn.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-3px)';
+        });
+        
+        btn.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+    
+    // Клавиатурное управление
+    document.addEventListener('keydown', function(e) {
+        let direction = null;
+        
+        switch(e.key) {
+            case 'ArrowUp':
+            case 'w':
+            case 'ц':
+                direction = 'up';
+                break;
+            case 'ArrowDown':
+            case 's':
+            case 'ы':
+                direction = 'down';
+                break;
+            case 'ArrowLeft':
+            case 'a':
+            case 'ф':
+                direction = 'left';
+                break;
+            case 'ArrowRight':
+            case 'd':
+            case 'в':
+                direction = 'right';
+                break;
+        }
+        
+        if (direction) {
+            e.preventDefault();
+            // Находим и кликаем соответствующую кнопку
+            const button = document.querySelector(`input[value="${direction}"]`)?.closest('button');
+            if (button) {
+                button.click();
+                // Визуальная обратная связь
+                button.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    button.style.transform = '';
+                }, 100);
+            }
+        }
+    });
+    
+    // Показываем подсказку по управлению только при первом запуске
+    setTimeout(() => {
+        if (moves === 0) {
+            console.log('💡 Подсказка: Используйте стрелки на клавиатуре для управления');
+            
+            // Можно добавить визуальную подсказку
+            const hint = document.createElement('div');
+            hint.className = 'alert alert-info mt-3';
+            hint.innerHTML = `
+                <small>
+                    💡 <strong>Подсказка:</strong> Вы также можете использовать:
+                    <br>• <kbd>←</kbd> <kbd>↑</kbd> <kbd>→</kbd> <kbd>↓</kbd> - стрелки
+                    <br>• <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> - WASD
+                </small>
+            `;
+            
+            const rulesSection = document.querySelector('.alert-info');
+            if (rulesSection) {
+                rulesSection.parentNode.insertBefore(hint, rulesSection.nextSibling);
+                
+                // Автоматически скрываем через 10 секунд
+                setTimeout(() => {
+                    hint.style.opacity = '0';
+                    hint.style.transition = 'opacity 0.5s';
+                    setTimeout(() => hint.remove(), 500);
+                }, 10000);
+            }
+        }
+    }, 1000);
+    
+    // Добавляем звуковые эффекты (опционально)
+    function playSound(effect) {
+        // Можно добавить звуки позже
+        console.log('🔊 Воспроизведение звука:', effect);
+    }
+    
+    // Обработка кликов по плиткам для отладки
+    document.querySelectorAll('.tile-show').forEach(tile => {
+        tile.addEventListener('click', function() {
+            console.log('🧱 Плитка:', this.textContent, 'Цвет:', this.style.backgroundColor);
+        });
+    });
+});
+
+// Функция для пульсации больших плиток
+function addPulseAnimation() {
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes pulse {
+            0% { box-shadow: 0 0 5px rgba(255,255,255,0.3); }
+            50% { box-shadow: 0 0 20px rgba(255,255,255,0.7); }
+            100% { box-shadow: 0 0 5px rgba(255,255,255,0.3); }
+        }
+        
+        .tile-128, .tile-256, .tile-512, .tile-1024, .tile-2048 {
+            animation: pulse 2s infinite;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// Добавляем анимацию пульсации
+addPulseAnimation();
+</script>
+
 {% endblock %}
