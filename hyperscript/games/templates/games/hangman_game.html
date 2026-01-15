@@ -1,0 +1,123 @@
+<!-- games/templates/games/hangman_game.html -->
+<!-- Статистика -->
+<div class="row mb-4">
+    <div class="col-4">
+        <div class="border rounded p-2">
+            <small>Ошибки</small>
+            <div class="h4 mb-0 {% if wrong_guesses >= 5 %}text-danger{% else %}text-warning{% endif %}">
+                {{ wrong_guesses }} / 7
+            </div>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="border rounded p-2">
+            <small>Угадано букв</small>
+            <div class="h4 mb-0 text-success">{{ guessed_letters|length }}</div>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="border rounded p-2">
+            <small>Осталось попыток</small>
+            <div class="h4 mb-0 text-info">{{ 7|add:"-"|add:wrong_guesses }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Виселица -->
+<div class="mb-4" style="font-family: monospace; font-size: 1.2rem;">
+    <pre id="hangmanArt" data-wrong-guesses="{{ wrong_guesses }}" style="background: #f8f9fa; padding: 15px; border-radius: 10px; display: inline-block;">
+        <!-- Заполнится JavaScript -->
+    </pre>
+</div>
+
+<!-- Загаданное слово -->
+<div class="mb-4">
+    <h2 class="display-4 letter-spacing">{{ display_word }}</h2>
+    <p class="text-muted">Угадайте слово по буквам</p>
+</div>
+
+{% if game_over %}
+<!-- Результат игры -->
+<div class="alert {% if won %}alert-success{% else %}alert-danger{% endif %} mb-4">
+    <h4 class="mb-3">
+        {% if won %}🎉 Поздравляем! Вы выиграли!{% else %}💀 Игра окончена!{% endif %}
+    </h4>
+    <p class="mb-0">
+        <strong>Загаданное слово:</strong> {{ full_word|default:"[слово]" }}
+    </p>
+</div>
+
+<button id="newGameBtn" class="btn btn-primary btn-lg mb-4">
+    🚀 Новая игра
+</button>
+
+{% else %}
+<!-- Выбор букв -->
+<div class="mb-4">
+    <h5>Выберите букву:</h5>
+    
+    {% with "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ" as alphabet %}
+    
+    <!-- Первая строка букв -->
+    <div class="d-flex flex-wrap justify-content-center gap-2 mb-3">
+        {% for letter in alphabet|slice:":13" %}
+        {% if letter in guessed_letters %}
+        <button class="btn btn-secondary btn-letter disabled" disabled>
+            {{ letter }}
+        </button>
+        {% else %}
+        <button class="btn btn-outline-primary btn-letter" data-letter="{{ letter }}">
+            {{ letter }}
+        </button>
+        {% endif %}
+        {% endfor %}
+    </div>
+    
+    <!-- Вторая строка букв -->
+    <div class="d-flex flex-wrap justify-content-center gap-2 mb-4">
+        {% for letter in alphabet|slice:"13:" %}
+        {% if letter in guessed_letters %}
+        <button class="btn btn-secondary btn-letter disabled" disabled>
+            {{ letter }}
+        </button>
+        {% else %}
+        <button class="btn btn-outline-primary btn-letter" data-letter="{{ letter }}">
+            {{ letter }}
+        </button>
+        {% endif %}
+        {% endfor %}
+    </div>
+    
+    {% endwith %}
+</div>
+
+<!-- Уже угаданные буквы -->
+{% if guessed_letters %}
+<div class="mb-4">
+    <small class="text-muted">Использованные буквы:</small>
+    <div class="h5">
+        {% for letter in guessed_letters %}
+        <span class="badge bg-secondary me-1">{{ letter }}</span>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Подсказка -->
+<div class="alert alert-info">
+    <small>
+        💡 <strong>Правила:</strong> Угадывайте слово по буквам. 
+        Максимум 7 ошибок. Все буквы заглавные, русского алфавита.
+        {% if wrong_guesses >= 4 %}
+        <br>⚠️ <strong>Внимание!</strong> У вас уже {{ wrong_guesses }} ошибок.
+        {% endif %}
+    </small>
+</div>
+{% endif %}
+
+<!-- Навигация -->
+<div class="mt-4">
+    <a href="{% url 'games_index' %}" class="btn btn-outline-secondary">
+        ← Назад к играм
+    </a>
+</div>

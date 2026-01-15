@@ -1,0 +1,56 @@
+<div id="game2048Content">
+    <!-- Статистика -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="border rounded p-3 text-center bg-light">
+                <small>Счет</small>
+                <div class="h3 mb-0 text-primary">{{ score }}</div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="border rounded p-3 text-center bg-light">
+                <small>Рекорд</small>
+                <div class="h3 mb-0 text-warning">{{ high_score }}</div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="border rounded p-3 text-center bg-light">
+                <small>Ходы</small>
+                <div class="h3 mb-0 text-info">{{ moves }}</div>
+            </div>
+        </div>
+    </div>
+    
+    {% if won and not game_over %}
+    <div class="alert alert-success mb-4">
+        <h4>🎉 Поздравляем! Вы достигли 2048!</h4>
+        <p class="mb-0">Продолжайте играть, чтобы улучшить счет!</p>
+    </div>
+    {% endif %}
+    
+    {% if game_over %}
+    <div class="alert alert-danger mb-4">
+        <h4>💀 Игра окончена!</h4>
+        <p class="mb-0">Нет возможных ходов. Ваш счет: {{ score }}</p>
+    </div>
+    {% endif %}
+    
+    <!-- Игровое поле -->
+    <div class="game-board mb-4">
+        <div class="grid-container">
+            {% for row in grid %}
+            <div class="grid-row">
+                {% for cell in row %}
+                <div class="grid-cell">
+                    <div class="tile tile-{{ cell }} {% if cell != 0 %}tile-show{% endif %}">
+                        {% if cell != 0 %}
+                            {{ cell }}
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>

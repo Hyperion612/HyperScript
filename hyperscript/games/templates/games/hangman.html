@@ -14,188 +14,34 @@
                     </div>
                 </div>
                 
-                <div class="card-body text-center">
-                    
-                    <!-- Статистика -->
-                    <div class="row mb-4">
-                        <div class="col-4">
-                            <div class="border rounded p-2">
-                                <small>Ошибки</small>
-                                <div class="h4 mb-0 {% if wrong_guesses >= 5 %}text-danger{% else %}text-warning{% endif %}">
-                                    {{ wrong_guesses }} / 7
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-4">
-                            <div class="border rounded p-2">
-                                <small>Угадано букв</small>
-                                <div class="h4 mb-0 text-success">
-                                    {% with display_word|cut:" "|length|add:"0" as total_chars %}
-                                    {% with display_word|cut:"_"|cut:" "|length as guessed_chars %}
-                                    {{ guessed_chars }}
-                                    {% endwith %}
-                                    {% endwith %}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-4">
-                            <div class="border rounded p-2">
-                                <small>Осталось попыток</small>
-                                <div class="h4 mb-0 text-info">
-                                    {{ 7|add:0|add:"-"|add:wrong_guesses }}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Виселица -->
-                    <div class="mb-4" style="font-family: monospace; font-size: 1.2rem;">
-                        <pre id="hangmanArt" style="background: #f8f9fa; padding: 15px; border-radius: 10px; display: inline-block;">
-  ┌─────┐
-  │     
-  │    
-  │    
-  │
-┌─┴─┐
-                        </pre>
-                    </div>
-                    
-                    <!-- Загаданное слово -->
-                    <div class="mb-4">
-                        <h2 class="display-4 letter-spacing">{{ display_word }}</h2>
-                        <p class="text-muted">Угадайте слово по буквам</p>
-                    </div>
-                    
-                    {% if game_over %}
-                        <!-- Результат игры -->
-                        <div class="alert {% if won %}alert-success{% else %}alert-danger{% endif %} mb-4">
-                            <h4 class="mb-3">
-                                {% if won %}
-                                    🎉 Поздравляем! Вы выиграли!
-                                {% else %}
-                                    💀 Игра окончена!
-                                {% endif %}
-                            </h4>
-                            <p class="mb-0">
-                                <strong>Загаданное слово:</strong> 
-                                {% if won %}
-                                    {{ display_word|cut:" " }}
-                                {% else %}
-                                    <!-- Здесь будет полное слово из view -->
-                                    {{ request.session.hangman.word|default:"[слово]" }}
-                                {% endif %}
-                            </p>
-                        </div>
-                        
-                        <form method="POST" class="mb-4">
-                            {% csrf_token %}
-                            <input type="hidden" name="new_game" value="1">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                🚀 Новая игра
-                            </button>
-                        </form>
-                        
-                    {% else %}
-                        <!-- Выбор букв -->
-                        <div class="mb-4">
-                            <h5>Выберите букву:</h5>
-                            
-                            {% with "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ" as alphabet %}
-                            
-                            <!-- Первая строка букв -->
-                            <div class="d-flex flex-wrap justify-content-center gap-2 mb-3">
-                                {% for letter in alphabet|slice:":13" %}
-                                {% if letter in guessed_letters %}
-                                <button class="btn btn-secondary btn-letter disabled" disabled>
-                                    {{ letter }}
-                                </button>
-                                {% else %}
-                                <form method="POST" style="display: inline;">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="letter" value="{{ letter }}">
-                                    <button type="submit" class="btn btn-outline-primary btn-letter">
-                                        {{ letter }}
-                                    </button>
-                                </form>
-                                {% endif %}
-                                {% endfor %}
-                            </div>
-                            
-                            <!-- Вторая строка букв -->
-                            <div class="d-flex flex-wrap justify-content-center gap-2 mb-4">
-                                {% for letter in alphabet|slice:"13:" %}
-                                {% if letter in guessed_letters %}
-                                <button class="btn btn-secondary btn-letter disabled" disabled>
-                                    {{ letter }}
-                                </button>
-                                {% else %}
-                                <form method="POST" style="display: inline;">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="letter" value="{{ letter }}">
-                                    <button type="submit" class="btn btn-outline-primary btn-letter">
-                                        {{ letter }}
-                                    </button>
-                                </form>
-                                {% endif %}
-                                {% endfor %}
-                            </div>
-                            
-                            {% endwith %}
-                        </div>
-                        
-                        <!-- Уже угаданные буквы -->
-                        {% if guessed_letters %}
-                        <div class="mb-4">
-                            <small class="text-muted">Использованные буквы:</small>
-                            <div class="h5">
-                                {% for letter in guessed_letters %}
-                                <span class="badge bg-secondary me-1">{{ letter }}</span>
-                                {% endfor %}
-                            </div>
-                        </div>
-                        {% endif %}
-                        
-                        <!-- Подсказка -->
-                        <div class="alert alert-info">
-                            <small>
-                                💡 <strong>Правила:</strong> Угадывайте слово по буквам. 
-                                Максимум 7 ошибок. Все буквы заглавные, русского алфавита.
-                                {% if wrong_guesses >= 4 %}
-                                <br>⚠️ <strong>Внимание!</strong> У вас уже {{ wrong_guesses }} ошибок.
-                                {% endif %}
-                            </small>
-                        </div>
-                    {% endif %}
-                    
-                    <!-- Навигация -->
-                    <div class="mt-4">
-                        <a href="{% url 'games_index' %}" class="btn btn-outline-secondary">
-                            ← Назад к играм
-                        </a>
-                        <a href="{% url 'rock_paper_scissors' %}" class="btn btn-outline-primary ms-2">
-                            ✊✋✌️ Камень-Ножницы-Бумага
-                        </a>
-                        <a href="{% url 'game_2048' %}" class="btn btn-outline-warning ms-2">
-                            🔢 2048
-                        </a>
-                    </div>
-                    
+                <div class="card-body text-center" id="gameContainer">
+                    <!-- Контент будет обновляться через AJAX -->
+                    {% include 'games/hangman_game.html' %}
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Скрытые данные для JavaScript -->
-<div id="gameData" 
-     data-wrong-guesses="{{ wrong_guesses }}"
-     data-game-over="{{ game_over|yesno:'true,false' }}"
-     data-won="{{ won|yesno:'true,false' }}"
-     style="display: none;">
-</div>
-
-<!-- JavaScript -->
+<!-- JavaScript для AJAX -->
 <script>
+// CSRF токен для AJAX запросов
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+const csrftoken = getCookie('csrftoken');
+
 // Функция рисования виселицы
 function drawHangman(wrongGuesses) {
     const parts = [
@@ -217,24 +63,123 @@ function drawHangman(wrongGuesses) {
     `;
 }
 
-// Основная функция
-function initHangmanGame() {
-    // Получаем данные
-    const gameData = document.getElementById('gameData');
-    if (!gameData) return;
+// Функция отправки буквы
+function guessLetter(letter) {
+    console.log('Угадываем букву:', letter);
     
-    const wrongGuesses = parseInt(gameData.dataset.wrongGuesses) || 0;
-    const gameOver = gameData.dataset.gameOver === 'true';
-    const won = gameData.dataset.won === 'true';
-    
-    // Рисуем виселицу
-    const artElement = document.getElementById('hangmanArt');
-    if (artElement) {
-        artElement.textContent = drawHangman(wrongGuesses);
+    // Показываем индикатор загрузки
+    const button = document.querySelector(`[data-letter="${letter}"]`);
+    if (button) {
+        button.disabled = true;
+        button.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
     }
     
-    // Анимация кнопок
+    // Отправляем AJAX запрос
+    fetch('/games/hangman/guess/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken
+        },
+        body: JSON.stringify({
+            letter: letter
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Ответ сервера:', data);
+        
+        // Обновляем игровое поле
+        updateGameState(data);
+        
+        // Показываем уведомление если нужно
+        if (data.message) {
+            showNotification(data.message, data.game_over ? 'danger' : 'success');
+        }
+    })
+    .catch(error => {
+        console.error('Ошибка:', error);
+        showNotification('Ошибка соединения с сервером', 'danger');
+        
+        // Восстанавливаем кнопку
+        if (button) {
+            button.disabled = false;
+            button.textContent = letter;
+        }
+    });
+}
+
+// Функция новой игры
+function newHangmanGame() {
+    fetch('/games/hangman/new/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrftoken
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        updateGameState(data);
+        showNotification('Новая игра началась!', 'success');
+    })
+    .catch(error => {
+        console.error('Ошибка:', error);
+        showNotification('Ошибка начала новой игры', 'danger');
+    });
+}
+
+// Функция обновления состояния игры
+function updateGameState(data) {
+    const container = document.getElementById('gameContainer');
+    if (!container) return;
+    
+    // Создаем временный элемент для парсинга HTML
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = data.html;
+    
+    // Заменяем контент
+    container.innerHTML = tempDiv.innerHTML;
+    
+    // Инициализируем новое состояние
+    initHangmanGame();
+}
+
+// Функция показа уведомления
+function showNotification(message, type = 'info') {
+    // Создаем элемент уведомления
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type} alert-dismissible fade show`;
+    notification.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    // Добавляем в начало контейнера
+    const container = document.getElementById('gameContainer');
+    if (container) {
+        container.insertBefore(notification, container.firstChild);
+        
+        // Автоматически скрываем через 3 секунды
+        setTimeout(() => {
+            const bsAlert = new bootstrap.Alert(notification);
+            bsAlert.close();
+        }, 3000);
+    }
+}
+
+// Инициализация игры
+function initHangmanGame() {
+    // Вешаем обработчики на кнопки букв
     document.querySelectorAll('.btn-letter:not(.disabled)').forEach(btn => {
+        const letter = btn.dataset.letter;
+        if (letter) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                guessLetter(letter);
+            });
+        }
+        
+        // Анимации
         btn.addEventListener('mouseenter', function() {
             this.style.transform = 'scale(1.1)';
             this.style.boxShadow = '0 5px 15px rgba(0,0,0,0.2)';
@@ -244,23 +189,23 @@ function initHangmanGame() {
             this.style.transform = 'scale(1)';
             this.style.boxShadow = 'none';
         });
-        
-        btn.addEventListener('click', function() {
-            this.style.backgroundColor = '#6c757d';
-            this.style.color = 'white';
-        });
     });
     
-    // Уведомления
-    if (wrongGuesses >= 6) {
-        setTimeout(() => alert('⚠️ Осторожно! Последняя попытка!'), 500);
+    // Обработчик новой игры
+    const newGameBtn = document.getElementById('newGameBtn');
+    if (newGameBtn) {
+        newGameBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            newHangmanGame();
+        });
     }
     
-    if (gameOver && !won) {
-        setTimeout(() => alert('💀 Игра окончена! Попробуйте снова!'), 1000);
+    // Рисуем виселицу
+    const wrongGuesses = parseInt(document.getElementById('hangmanArt')?.dataset.wrongGuesses) || 0;
+    const artElement = document.getElementById('hangmanArt');
+    if (artElement) {
+        artElement.textContent = drawHangman(wrongGuesses);
     }
-    
-    console.log('🎮 Виселица загружена. Ошибок:', wrongGuesses);
 }
 
 // Запуск при загрузке
@@ -268,41 +213,32 @@ document.addEventListener('DOMContentLoaded', initHangmanGame);
 </script>
 
 <style>
-/* Стили */
-.letter-spacing {
-    letter-spacing: 12px;
-    font-weight: bold;
+/* Стили остаются прежними */
+.letter-spacing { letter-spacing: 12px; font-weight: bold; }
+.btn-letter { width: 50px; height: 50px; font-weight: bold; transition: all 0.2s; }
+.btn-letter:hover:not(.disabled) { transform: scale(1.1); }
+.btn-letter.disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Анимация для угадывания буквы */
+@keyframes letterGuessed {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
 }
 
-.btn-letter {
-    width: 50px;
-    height: 50px;
-    font-weight: bold;
-    transition: all 0.2s;
+.letter-guessed {
+    animation: letterGuessed 0.3s ease;
 }
 
-.btn-letter:hover:not(.disabled) {
-    transform: scale(1.1);
+/* Стили для уведомлений */
+.alert {
+    border-radius: 10px;
+    margin-bottom: 15px;
 }
 
-.btn-letter.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-/* Адаптивность */
 @media (max-width: 768px) {
-    .letter-spacing {
-        letter-spacing: 6px;
-        font-size: 1.8rem;
-    }
-    
-    .btn-letter {
-        width: 40px;
-        height: 40px;
-        font-size: 0.9rem;
-    }
+    .letter-spacing { letter-spacing: 6px; font-size: 1.8rem; }
+    .btn-letter { width: 40px; height: 40px; font-size: 0.9rem; }
 }
 </style>
-
 {% endblock %}
