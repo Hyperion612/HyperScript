@@ -42,27 +42,6 @@ function getCookie(name) {
 }
 const csrftoken = getCookie('csrftoken');
 
-// Функция рисования виселицы
-function drawHangman(wrongGuesses) {
-    const parts = [
-        wrongGuesses > 0 ? 'O' : ' ',
-        wrongGuesses > 1 ? '|' : ' ',
-        wrongGuesses > 2 ? '/' : ' ',
-        wrongGuesses > 3 ? '\\' : ' ',
-        wrongGuesses > 4 ? '/' : ' ',
-        wrongGuesses > 5 ? '\\' : ' '
-    ];
-    
-    return `
-  ┌─────┐
-  │     ${parts[0]}
-  │    ${parts[2]}${parts[1]}${parts[3]}
-  │    ${parts[4]} ${parts[5]}
-  │
-┌─┴─┐
-    `;
-}
-
 // Функция отправки буквы
 function guessLetter(letter) {
     console.log('Угадываем букву:', letter);
@@ -81,20 +60,28 @@ function guessLetter(letter) {
             'Content-Type': 'application/json',
             'X-CSRFToken': csrftoken
         },
-        body: JSON.stringify({
-            letter: letter
-        })
+        body: JSON.stringify({ letter: letter })
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
         console.log('Ответ сервера:', data);
         
+        if (data.error) {
+            showNotification(data.error, 'danger');
+            return;
+        }
+        
         // Обновляем игровое поле
-        updateGameState(data);
+        updateHangmanGame(data);
         
         // Показываем уведомление если нужно
         if (data.message) {
-            showNotification(data.message, data.game_over ? 'danger' : 'success');
+            showNotification(data.message, data.game_state?.game_over ? 'warning' : 'success');
         }
     })
     .catch(error => {
@@ -109,38 +96,15 @@ function guessLetter(letter) {
     });
 }
 
-// Функция новой игры
-function newHangmanGame() {
-    fetch('/games/hangman/new/', {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': csrftoken
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        updateGameState(data);
-        showNotification('Новая игра началась!', 'success');
-    })
-    .catch(error => {
-        console.error('Ошибка:', error);
-        showNotification('Ошибка начала новой игры', 'danger');
-    });
-}
-
-// Функция обновления состояния игры
-function updateGameState(data) {
+// Функция обновления игры Виселица
+function updateHangmanGame(data) {
     const container = document.getElementById('gameContainer');
-    if (!container) return;
-    
-    // Создаем временный элемент для парсинга HTML
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = data.html;
+    if (!container || !data.html) return;
     
     // Заменяем контент
-    container.innerHTML = tempDiv.innerHTML;
+    container.innerHTML = data.html;
     
-    // Инициализируем новое состояние
+    // Переинициализируем игру
     initHangmanGame();
 }
 

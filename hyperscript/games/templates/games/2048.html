@@ -111,22 +111,16 @@ function getCookie(name) {
 }
 const csrftoken = getCookie('csrftoken');
 
-// Функция для выполнения хода
+// Функция для выполнения хода в 2048
 function makeMove(direction) {
-    console.log('Ход:', direction);
+    console.log('Ход 2048:', direction);
     
-    // Показываем индикатор загрузки на кнопке
-    const button = document.querySelector(`[onclick="makeMove('${direction}')"]`);
+    // Показываем индикатор загрузки
+    const button = document.querySelector(`[onclick*="${direction}"]`);
     if (button) {
-        button.disabled = true;
         const originalText = button.innerHTML;
         button.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
-        
-        // Восстанавливаем через 500ms если что-то пошло не так
-        setTimeout(() => {
-            button.disabled = false;
-            button.innerHTML = originalText;
-        }, 500);
+        button.disabled = true;
     }
     
     // Отправляем AJAX запрос
@@ -136,18 +130,24 @@ function makeMove(direction) {
             'Content-Type': 'application/json',
             'X-CSRFToken': csrftoken
         },
-        body: JSON.stringify({
-            direction: direction
-        })
+        body: JSON.stringify({ direction: direction })
     })
     .then(response => {
+        console.log('Статус ответа:', response.status);
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            return response.json().then(err => {
+                throw new Error(err.error || `HTTP error! status: ${response.status}`);
+            });
         }
         return response.json();
     })
     .then(data => {
-        console.log('Ответ сервера:', data);
+        console.log('Ответ 2048:', data);
+        
+        if (data.error) {
+            showNotification2048(data.error, 'danger');
+            return;
+        }
         
         // Обновляем игровое поле
         updateGame2048(data);
@@ -158,25 +158,25 @@ function makeMove(direction) {
             button.innerHTML = getButtonTextForDirection(direction);
         }
         
-        // Показываем уведомление если нужно
+        // Показываем уведомление
         if (data.message) {
-            showNotification(data.message, data.game_state?.game_over ? 'warning' : 'success');
+            showNotification2048(data.message, 'success');
         }
         
         // Если игра окончена
         if (data.game_state?.game_over) {
-            showNotification('💀 Игра окончена! Начните новую игру.', 'danger');
+            showNotification2048('💀 Игра окончена! Начните новую игру.', 'danger');
             disableMoveButtons();
         }
         
         // Если достигли 2048
         if (data.game_state?.won) {
-            showNotification('🎉 Поздравляем! Вы достигли 2048!', 'success');
+            showNotification2048('🎉 Поздравляем! Вы достигли 2048!', 'success');
         }
     })
     .catch(error => {
-        console.error('Ошибка:', error);
-        showNotification('Ошибка соединения с сервером', 'danger');
+        console.error('Ошибка 2048:', error);
+        showNotification2048('Ошибка: ' + error.message, 'danger');
         
         // Восстанавливаем кнопку
         if (button) {
@@ -186,75 +186,25 @@ function makeMove(direction) {
     });
 }
 
-// Функция для новой игры
-function newGame() {
-    console.log('Начало новой игры');
-    
-    // Показываем индикатор загрузки
-    const button = document.querySelector('[onclick="newGame()"]');
-    if (button) {
-        const originalText = button.innerHTML;
-        button.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
-        button.disabled = true;
-    }
-    
-    // Отправляем AJAX запрос
-    fetch('/games/2048/new/', {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': csrftoken
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log('Новая игра:', data);
-        
-        // Обновляем игровое поле
-        updateGame2048(data);
-        
-        // Восстанавливаем кнопку
-        if (button) {
-            button.disabled = false;
-            button.innerHTML = originalText;
-        }
-        
-        // Включаем кнопки ходов
-        enableMoveButtons();
-        
-        // Показываем уведомление
-        showNotification(data.message || 'Новая игра началась!', 'success');
-    })
-    .catch(error => {
-        console.error('Ошибка:', error);
-        showNotification('Ошибка начала новой игры', 'danger');
-        
-        // Восстанавливаем кнопку
-        if (button) {
-            button.disabled = false;
-            button.innerHTML = '🚀 Новая игра';
-        }
-    });
-}
-
-// Функция обновления игрового поля
+// Функция обновления игрового поля 2048
 function updateGame2048(data) {
     const container = document.getElementById('gameContainer2048');
-    if (!container) return;
-    
-    // Создаем временный элемент для парсинга HTML
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = data.html;
+    if (!container || !data.html) {
+        console.error('Контейнер не найден или нет HTML в ответе');
+        return;
+    }
     
     // Заменяем контент
-    container.innerHTML = tempDiv.innerHTML;
+    container.innerHTML = data.html;
     
     // Добавляем анимации плиткам
-    init2048Animations();
+    setTimeout(() => {
+        init2048Animations();
+    }, 100);
 }
 
-// Функция показа уведомления
-function showNotification(message, type = 'info') {
-    // Создаем элемент уведомления
+// Функция показа уведомления для 2048
+function showNotification2048(message, type = 'info') {
     const notification = document.createElement('div');
     notification.className = `alert alert-${type} alert-dismissible fade show`;
     notification.innerHTML = `
@@ -262,168 +212,17 @@ function showNotification(message, type = 'info') {
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     `;
     
-    // Добавляем в начало контейнера
     const container = document.getElementById('gameContainer2048');
     if (container) {
         container.insertBefore(notification, container.firstChild);
         
-        // Автоматически скрываем через 3 секунды
         setTimeout(() => {
-            const bsAlert = new bootstrap.Alert(notification);
-            bsAlert.close();
+            if (notification.parentNode) {
+                const bsAlert = new bootstrap.Alert(notification);
+                bsAlert.close();
+            }
         }, 3000);
     }
-}
-
-// Функция отключения кнопок ходов
-function disableMoveButtons() {
-    document.querySelectorAll('.btn-control').forEach(btn => {
-        btn.disabled = true;
-        btn.classList.add('disabled');
-    });
-}
-
-// Функция включения кнопок ходов
-function enableMoveButtons() {
-    document.querySelectorAll('.btn-control').forEach(btn => {
-        btn.disabled = false;
-        btn.classList.remove('disabled');
-    });
-}
-
-// Функция для получения текста кнопки по направлению
-function getButtonTextForDirection(direction) {
-    const texts = {
-        'up': '↑ Вверх',
-        'down': '↓ Вниз',
-        'left': '← Влево',
-        'right': 'Вправо →'
-    };
-    return texts[direction] || direction;
-}
-
-// Анимации для плиток 2048
-function init2048Animations() {
-    // Добавляем анимации плиткам
-    const tiles = document.querySelectorAll('.tile-show');
-    tiles.forEach((tile, index) => {
-        // Задержка для последовательного появления
-        tile.style.animationDelay = (index * 0.05) + 's';
-        
-        // Добавляем класс для анимации появления
-        tile.classList.add('tile-new');
-        
-        // Если плитка большая (128+), добавляем мерцание
-        const value = parseInt(tile.textContent);
-        if (value >= 128) {
-            tile.style.animation = 'appear 0.2s ease, pulse 2s infinite';
-        }
-    });
-    
-    // Анимация для кнопок управления
-    document.querySelectorAll('.btn-control').forEach(btn => {
-        btn.addEventListener('mouseenter', function() {
-            if (!this.disabled) {
-                this.style.transform = 'translateY(-3px)';
-                this.style.boxShadow = '0 5px 15px rgba(0,0,0,0.2)';
-            }
-        });
-        
-        btn.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0)';
-            this.style.boxShadow = 'none';
-        });
-    });
-}
-
-// Клавиатурное управление
-document.addEventListener('keydown', function(e) {
-    // Проверяем, не введено ли в поле ввода
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-        return;
-    }
-    
-    let direction = null;
-    
-    switch(e.key) {
-        case 'ArrowUp':
-        case 'w':
-        case 'ц':
-            direction = 'up';
-            break;
-        case 'ArrowDown':
-        case 's':
-        case 'ы':
-            direction = 'down';
-            break;
-        case 'ArrowLeft':
-        case 'a':
-        case 'ф':
-            direction = 'left';
-            break;
-        case 'ArrowRight':
-        case 'd':
-        case 'в':
-            direction = 'right';
-            break;
-    }
-    
-    if (direction) {
-        e.preventDefault();
-        makeMove(direction);
-    }
-});
-
-// Инициализация при загрузке страницы
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🎮 2048 AJAX версия загружена');
-    
-    // Получаем начальное состояние игры
-    // Способ 1: Проверяем наличие алерта о конце игры
-    const gameOverAlert = document.querySelector('.alert-danger');
-    const isGameOver = gameOverAlert !== null;
-    
-    // Способ 2: Проверяем disabled состояние кнопок (если они были отключены в шаблоне)
-    const firstButton = document.querySelector('.btn-control');
-    const buttonsDisabled = firstButton ? firstButton.disabled : false;
-    
-    // Используем любой из способов
-    const gameOver = isGameOver || buttonsDisabled;
-    
-    console.log('Состояние игры при загрузке:', { gameOver, isGameOver, buttonsDisabled });
-    
-    // Инициализируем анимации
-    init2048Animations();
-    
-    // Вешаем обработчики на кнопки
-    document.querySelectorAll('.btn-control').forEach(btn => {
-        const direction = getDirectionFromButton(btn);
-        if (direction) {
-            // Добавляем обработчик если его нет
-            if (!btn.getAttribute('onclick')) {
-                btn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    makeMove(direction);
-                });
-            }
-        }
-    });
-    
-    // Если игра окончена, отключаем кнопки
-    if (gameOver) {
-        console.log('Игра окончена, отключаем кнопки');
-        disableMoveButtons();
-    }
-});
-
-// Вспомогательная функция для определения направления по кнопке
-function getDirectionFromButton(button) {
-    const text = button.textContent || '';
-    if (text.includes('Вверх') || text.includes('↑')) return 'up';
-    if (text.includes('Вниз') || text.includes('↓')) return 'down';
-    if (text.includes('Влево') || text.includes('←')) return 'left';
-    if (text.includes('Вправо') || text.includes('→')) return 'right';
-    return null;
 }
 </script>
 
