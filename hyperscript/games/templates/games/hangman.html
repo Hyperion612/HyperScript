@@ -14,9 +14,34 @@
                     </div>
                 </div>
                 
-                <div class="card-body text-center" id="gameContainer">
-                    <!-- Контент будет обновляться через AJAX -->
+                <div class="card-body text-center" id="hangmanContainer">
+                    <!-- Игровая часть будет загружена через AJAX -->
                     {% include 'games/hangman_game.html' %}
+                </div>
+            </div>
+            
+            <!-- Правила и кнопки -->
+            <div class="card mt-4">
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <button type="button" class="btn btn-success btn-lg" onclick="newHangmanGame()">
+                            🚀 Новая игра
+                        </button>
+                        
+                        <a href="/games/" class="btn btn-outline-secondary btn-lg ms-2">
+                            ← Назад к играм
+                        </a>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <h5>📋 Правила игры:</h5>
+                        <ul class="mb-0">
+                            <li>Угадывайте слово по буквам, выбирая буквы из алфавита</li>
+                            <li>Максимум 7 ошибок</li>
+                            <li>Все буквы заглавные, русского алфавита</li>
+                            <li>Игра заканчивается, когда слово угадано полностью или закончились попытки</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
@@ -42,15 +67,16 @@ function getCookie(name) {
 }
 const csrftoken = getCookie('csrftoken');
 
-// Функция отправки буквы
+// Функция для угадывания буквы
 function guessLetter(letter) {
     console.log('Угадываем букву:', letter);
     
-    // Показываем индикатор загрузки
+    // Показываем индикатор загрузки на кнопке
     const button = document.querySelector(`[data-letter="${letter}"]`);
     if (button) {
-        button.disabled = true;
         button.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+        button.disabled = true;
+        button.classList.add('disabled');
     }
     
     // Отправляем AJAX запрос
@@ -58,9 +84,209 @@ function guessLetter(letter) {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': csrftoken
+            'X-CSRFToken': csrftoken,
+            'X-Requested-With': 'XMLHttpRequest'
         },
         body: JSON.stringify({ letter: letter })
+    })
+    .then(response => {
+        console.log('Статус ответа:', response.status);
+        if (!response.ok) {
+            return response.json().then(err => {
+                throw new Error(err.error || `HTTP error! status: ${response.status}`);
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Ответ Виселица:', data);
+        
+        if (data.error) {
+            showNotificationHangman(data.error, 'danger');
+            // Восстанавливаем кнопку при ошибке
+            if (button) {
+                button.disabled = false;
+                button.classList.remove('disabled');
+                button.innerHTML = letter;
+            }
+            return;
+        }
+        
+        // Обновляем игровое поле
+        updateHangmanGame(data);
+        
+        // Показываем уведомление
+        if (data.message) {
+            showNotificationHangman(data.message, data.status === 'success' ? 'success' : 'warning');
+        }
+        
+        // Если игра окончена
+        if (data.game_state?.game_over) {
+            if (data.game_state.won) {
+                showNotificationHangman('🎉 Поздравляем! Вы выиграли! Слово: ' + data.game_state.word, 'success');
+            } else {
+                showNotificationHangman('💀 Игра окончена! Загаданное слово: ' + data.game_state.word, 'danger');
+            }
+            disableAllLetterButtons();
+        }
+    })
+    .catch(error => {
+        console.error('Ошибка Виселица:', error);
+        showNotificationHangman('Ошибка: ' + error.message, 'danger');
+        
+        // Восстанавливаем кнопку
+        if (button) {
+            button.disabled = false;
+            button.classList.remove('disabled');
+            button.innerHTML = letter;
+        }
+    });
+}
+
+// Функция обновления игрового поля Виселицы
+function updateHangmanGame(data) {
+    const container = document.getElementById('hangmanContainer');
+    if (!container || !data.html) {
+        console.error('Контейнер не найден или нет HTML в ответе');
+        return;
+    }
+    
+    // Заменяем контент
+    container.innerHTML = data.html;
+    
+    // Обновляем ASCII арт виселицы
+    updateHangmanArt(data.game_state?.wrong_guesses || 0);
+    
+    // Назначаем обработчики на новые кнопки
+    attachHangmanEventListeners();
+}
+
+// Функция для обновления ASCII арта виселицы
+function updateHangmanArt(wrongGuesses) {
+    const artElement = document.getElementById('hangmanArt');
+    if (!artElement) return;
+    
+    const hangmanArts = [
+        // 0 ошибок
+        `  ┌─────┐
+  │     
+  │    
+  │    
+  │
+┌─┴─┐`,
+        // 1 ошибка
+        `  ┌─────┐
+  │     O
+  │    
+  │    
+  │
+┌─┴─┐`,
+        // 2 ошибки
+        `  ┌─────┐
+  │     O
+  │     |
+  │    
+  │
+┌─┴─┐`,
+        // 3 ошибки
+        `  ┌─────┐
+  │     O
+  │    /|
+  │    
+  │
+┌─┴─┐`,
+        // 4 ошибки
+        `  ┌─────┐
+  │     O
+  │    /|\\
+  │    
+  │
+┌─┴─┐`,
+        // 5 ошибки
+        `  ┌─────┐
+  │     O
+  │    /|\\
+  │    / 
+  │
+┌─┴─┐`,
+        // 6 ошибок
+        `  ┌─────┐
+  │     O
+  │    /|\\
+  │    / \\
+  │
+┌─┴─┐`
+    ];
+    
+    const index = Math.min(wrongGuesses, hangmanArts.length - 1);
+    artElement.textContent = hangmanArts[index];
+}
+
+// Функция для отключения всех кнопок букв
+function disableAllLetterButtons() {
+    const buttons = document.querySelectorAll('.btn-letter:not(.disabled)');
+    buttons.forEach(button => {
+        button.disabled = true;
+        button.classList.add('disabled');
+    });
+}
+
+// Функция для показа уведомления
+function showNotificationHangman(message, type = 'info') {
+    // Создаем уведомление
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type} alert-dismissible fade show mt-3`;
+    notification.setAttribute('role', 'alert');
+    notification.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    `;
+    
+    const container = document.getElementById('hangmanContainer');
+    if (container) {
+        // Удаляем старые уведомления
+        const oldAlerts = container.querySelectorAll('.alert');
+        oldAlerts.forEach(alert => {
+            if (alert !== notification) {
+                alert.remove();
+            }
+        });
+        
+        // Добавляем новое уведомление
+        container.insertBefore(notification, container.firstChild);
+        
+        // Автоматически скрываем через 3 секунды
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.remove();
+                    }
+                }, 150);
+            }
+        }, 3000);
+    }
+}
+
+// Функция для начала новой игры
+function newHangmanGame() {
+    // Показываем индикатор загрузки
+    const button = document.querySelector('[onclick="newHangmanGame()"]');
+    if (button) {
+        const originalText = button.innerHTML;
+        button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Создание...';
+        button.disabled = true;
+    }
+    
+    // Отправляем запрос на новую игру
+    fetch('/games/hangman/new/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken,
+            'X-Requested-With': 'XMLHttpRequest'
+        }
     })
     .then(response => {
         if (!response.ok) {
@@ -69,140 +295,132 @@ function guessLetter(letter) {
         return response.json();
     })
     .then(data => {
-        console.log('Ответ сервера:', data);
-        
-        if (data.error) {
-            showNotification(data.error, 'danger');
-            return;
-        }
+        console.log('Новая игра Виселица:', data);
         
         // Обновляем игровое поле
         updateHangmanGame(data);
         
-        // Показываем уведомление если нужно
-        if (data.message) {
-            showNotification(data.message, data.game_state?.game_over ? 'warning' : 'success');
+        // Восстанавливаем кнопку
+        if (button) {
+            button.disabled = false;
+            button.innerHTML = '🚀 Новая игра';
         }
+        
+        // Показываем уведомление
+        showNotificationHangman('🎮 Новая игра начата!', 'success');
     })
     .catch(error => {
-        console.error('Ошибка:', error);
-        showNotification('Ошибка соединения с сервером', 'danger');
+        console.error('Ошибка новой игры:', error);
+        showNotificationHangman('Ошибка: ' + error.message, 'danger');
         
         // Восстанавливаем кнопку
         if (button) {
             button.disabled = false;
-            button.textContent = letter;
+            button.innerHTML = '🚀 Новая игра';
         }
     });
 }
 
-// Функция обновления игры Виселица
-function updateHangmanGame(data) {
-    const container = document.getElementById('gameContainer');
-    if (!container || !data.html) return;
-    
-    // Заменяем контент
-    container.innerHTML = data.html;
-    
-    // Переинициализируем игру
-    initHangmanGame();
-}
-
-// Функция показа уведомления
-function showNotification(message, type = 'info') {
-    // Создаем элемент уведомления
-    const notification = document.createElement('div');
-    notification.className = `alert alert-${type} alert-dismissible fade show`;
-    notification.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-    
-    // Добавляем в начало контейнера
-    const container = document.getElementById('gameContainer');
-    if (container) {
-        container.insertBefore(notification, container.firstChild);
-        
-        // Автоматически скрываем через 3 секунды
-        setTimeout(() => {
-            const bsAlert = new bootstrap.Alert(notification);
-            bsAlert.close();
-        }, 3000);
-    }
-}
-
-// Инициализация игры
-function initHangmanGame() {
-    // Вешаем обработчики на кнопки букв
-    document.querySelectorAll('.btn-letter:not(.disabled)').forEach(btn => {
-        const letter = btn.dataset.letter;
-        if (letter) {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
+// Функция для прикрепления обработчиков событий
+function attachHangmanEventListeners() {
+    // Обработчики для кнопок букв
+    document.querySelectorAll('.btn-letter:not(.disabled)').forEach(button => {
+        button.addEventListener('click', function() {
+            const letter = this.getAttribute('data-letter');
+            if (letter) {
                 guessLetter(letter);
-            });
-        }
-        
-        // Анимации
-        btn.addEventListener('mouseenter', function() {
-            this.style.transform = 'scale(1.1)';
-            this.style.boxShadow = '0 5px 15px rgba(0,0,0,0.2)';
-        });
-        
-        btn.addEventListener('mouseleave', function() {
-            this.style.transform = 'scale(1)';
-            this.style.boxShadow = 'none';
+            }
         });
     });
     
-    // Обработчик новой игры
+    // Обработчик для кнопки новой игры в контенте
     const newGameBtn = document.getElementById('newGameBtn');
     if (newGameBtn) {
-        newGameBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            newHangmanGame();
-        });
-    }
-    
-    // Рисуем виселицу
-    const wrongGuesses = parseInt(document.getElementById('hangmanArt')?.dataset.wrongGuesses) || 0;
-    const artElement = document.getElementById('hangmanArt');
-    if (artElement) {
-        artElement.textContent = drawHangman(wrongGuesses);
+        newGameBtn.addEventListener('click', newHangmanGame);
     }
 }
 
-// Запуск при загрузке
-document.addEventListener('DOMContentLoaded', initHangmanGame);
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    // Обновляем ASCII арт при загрузке
+    const wrongGuesses = parseInt(document.querySelector('#hangmanArt')?.getAttribute('data-wrong-guesses') || 0);
+    updateHangmanArt(wrongGuesses);
+    
+    // Прикрепляем обработчики событий
+    attachHangmanEventListeners();
+});
 </script>
 
 <style>
-/* Стили остаются прежними */
-.letter-spacing { letter-spacing: 12px; font-weight: bold; }
-.btn-letter { width: 50px; height: 50px; font-weight: bold; transition: all 0.2s; }
-.btn-letter:hover:not(.disabled) { transform: scale(1.1); }
-.btn-letter.disabled { opacity: 0.5; cursor: not-allowed; }
-
-/* Анимация для угадывания буквы */
-@keyframes letterGuessed {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.2); }
-    100% { transform: scale(1); }
+.letter-spacing { 
+    letter-spacing: 12px; 
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+}
+.btn-letter { 
+    width: 50px; 
+    height: 50px; 
+    font-weight: bold; 
+    transition: all 0.2s; 
+    border-radius: 8px;
+}
+.btn-letter:hover:not(.disabled) { 
+    transform: scale(1.05); 
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+.btn-letter:disabled { 
+    opacity: 0.5; 
+    cursor: not-allowed;
+}
+.btn-letter:active:not(.disabled) {
+    transform: scale(0.95);
 }
 
-.letter-guessed {
-    animation: letterGuessed 0.3s ease;
+#hangmanArt {
+    font-family: 'Courier New', monospace;
+    font-size: 1.1rem;
+    line-height: 1.4;
+    min-height: 120px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    .letter-spacing { 
+        letter-spacing: 6px; 
+        font-size: 1.8rem; 
+    }
+    .btn-letter { 
+        width: 40px; 
+        height: 40px; 
+        font-size: 0.9rem; 
+    }
+    #hangmanArt {
+        font-size: 1rem;
+        min-height: 100px;
+    }
+}
+
+/* Анимация для букв */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.btn-letter {
+    animation: fadeIn 0.3s ease;
 }
 
 /* Стили для уведомлений */
 .alert {
     border-radius: 10px;
-    margin-bottom: 15px;
+    animation: slideDown 0.3s ease;
 }
 
-@media (max-width: 768px) {
-    .letter-spacing { letter-spacing: 6px; font-size: 1.8rem; }
-    .btn-letter { width: 40px; height: 40px; font-size: 0.9rem; }
+@keyframes slideDown {
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
 }
 </style>
+
 {% endblock %}

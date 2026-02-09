@@ -2,37 +2,37 @@
 <!-- Статистика -->
 <div class="row mb-4">
     <div class="col-4">
-        <div class="border rounded p-2">
-            <small>Ошибки</small>
+        <div class="border rounded p-2 bg-light">
+            <small class="text-muted d-block mb-1">Ошибки</small>
             <div class="h4 mb-0 {% if wrong_guesses >= 5 %}text-danger{% else %}text-warning{% endif %}">
                 {{ wrong_guesses }} / 7
             </div>
         </div>
     </div>
     <div class="col-4">
-        <div class="border rounded p-2">
-            <small>Угадано букв</small>
+        <div class="border rounded p-2 bg-light">
+            <small class="text-muted d-block mb-1">Угадано букв</small>
             <div class="h4 mb-0 text-success">{{ guessed_letters|length }}</div>
         </div>
     </div>
     <div class="col-4">
-        <div class="border rounded p-2">
-            <small>Осталось попыток</small>
+        <div class="border rounded p-2 bg-light">
+            <small class="text-muted d-block mb-1">Осталось попыток</small>
             <div class="h4 mb-0 text-info">{{ 7|add:"-"|add:wrong_guesses }}</div>
         </div>
     </div>
 </div>
 
 <!-- Виселица -->
-<div class="mb-4" style="font-family: monospace; font-size: 1.2rem;">
-    <pre id="hangmanArt" data-wrong-guesses="{{ wrong_guesses }}" style="background: #f8f9fa; padding: 15px; border-radius: 10px; display: inline-block;">
+<div class="mb-4 text-center">
+    <pre id="hangmanArt" style="font-family: 'Courier New', monospace; font-size: 1.2rem; background: #f8f9fa; padding: 15px; border-radius: 10px; display: inline-block; margin: 0 auto;">
         <!-- Заполнится JavaScript -->
     </pre>
 </div>
 
 <!-- Загаданное слово -->
 <div class="mb-4">
-    <h2 class="display-4 letter-spacing">{{ display_word }}</h2>
+    <h2 class="display-4 letter-spacing">{{ display_word|default:"_" }}</h2>
     <p class="text-muted">Угадайте слово по буквам</p>
 </div>
 
@@ -62,7 +62,7 @@
     <div class="d-flex flex-wrap justify-content-center gap-2 mb-3">
         {% for letter in alphabet|slice:":13" %}
         {% if letter in guessed_letters %}
-        <button class="btn btn-secondary btn-letter disabled" disabled>
+        <button class="btn btn-secondary btn-letter disabled" disabled data-letter="{{ letter }}">
             {{ letter }}
         </button>
         {% else %}
@@ -77,7 +77,7 @@
     <div class="d-flex flex-wrap justify-content-center gap-2 mb-4">
         {% for letter in alphabet|slice:"13:" %}
         {% if letter in guessed_letters %}
-        <button class="btn btn-secondary btn-letter disabled" disabled>
+        <button class="btn btn-secondary btn-letter disabled" disabled data-letter="{{ letter }}">
             {{ letter }}
         </button>
         {% else %}
@@ -97,7 +97,7 @@
     <small class="text-muted">Использованные буквы:</small>
     <div class="h5">
         {% for letter in guessed_letters %}
-        <span class="badge bg-secondary me-1">{{ letter }}</span>
+        <span class="badge bg-secondary me-1 mb-1">{{ letter }}</span>
         {% endfor %}
     </div>
 </div>
@@ -117,7 +117,7 @@
 
 <!-- Навигация -->
 <div class="mt-4">
-    <a href="/games/hangman/" class="btn btn-outline-secondary">
+    <a href="/games/" class="btn btn-outline-secondary">
         ← Назад к играм
     </a>
 </div>

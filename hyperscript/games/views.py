@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponse
 from django.template.loader import render_to_string
+from django.views.decorators.csrf import csrf_exempt
 import random
 import json
 
@@ -46,10 +47,13 @@ def hangman(request):
 @login_required
 def hangman_guess(request):
     """AJAX: Угадать букву в Виселице"""
-    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+    if request.method == 'POST':
         try:
-            data = json.loads(request.body)
-            letter = data.get('letter', '').upper().strip()
+            if request.content_type == 'application/json':
+                data = json.loads(request.body)
+                letter = data.get('letter', '').upper().strip()
+            else:
+                letter = request.POST.get('letter', '').upper().strip()
             
             # Проверяем, что буква валидная
             if not letter or len(letter) != 1 or not letter.isalpha():
@@ -82,7 +86,7 @@ def hangman_guess(request):
                 game_state['wrong_guesses'] += 1
             
             # Проверка условий окончания игры
-            message = f'Буква "{letter}" угадана!'
+            message = f'Буква "{letter}" угадана!' if letter in game_state['word'] else f'Буквы "{letter}" нет в слове!'
             
             # Проверяем, выиграл ли игрок
             if all(l in game_state['guessed'] for l in game_state['word']):
@@ -98,6 +102,7 @@ def hangman_guess(request):
             
             # Сохраняем обновленное состояние
             request.session['hangman'] = game_state
+            request.session.modified = True
             
             # Готовим контекст для ответа
             context = prepare_hangman_context(game_state)
@@ -120,7 +125,7 @@ def hangman_guess(request):
 @login_required
 def hangman_new(request):
     """AJAX: Начать новую игру в Виселицу"""
-    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+    if request.method == 'POST':
         words = [
             'ПРОГРАММИРОВАНИЕ', 'КОМПЬЮТЕР', 'АЛГОРИТМ', 'БАЗАДАННЫХ',
             'ИНТЕРНЕТ', 'ПРИЛОЖЕНИЕ', 'ФРЕЙМВОРК', 'ШАБЛОН', 'ПЕРЕМЕННАЯ'
@@ -136,6 +141,7 @@ def hangman_new(request):
         }
         
         request.session['hangman'] = game_state
+        request.session.modified = True
         
         # Готовим контекст
         context = prepare_hangman_context(game_state)
@@ -203,25 +209,44 @@ def game_2048(request):
 @login_required
 def game_2048_move(request):
     """AJAX: Сделать ход в 2048"""
-    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+    if request.method == 'POST':
         try:
-            data = json.loads(request.body)
-            direction = data.get('direction')
+            # Получаем данные из запроса
+            if request.content_type == 'application/json':
+                data = json.loads(request.body)
+                direction = data.get('direction')
+            else:
+                direction = request.POST.get('direction')
             
-            if direction not in ['up', 'down', 'left', 'right']:
+            if not direction or direction not in ['up', 'down', 'left', 'right']:
                 return JsonResponse({'error': 'Некорректное направление'}, status=400)
             
             # Получаем текущее состояние
             game_state = request.session.get('game_2048', {})
-            if not game_state:
+            if not game_state or 'grid' not in game_state:
                 game_state = initialize_2048_game()
+                request.session['game_2048'] = game_state
             
             # Если игра окончена
             if game_state.get('game_over', False):
-                return JsonResponse({'error': 'Игра уже окончена'}, status=400)
+                context = prepare_2048_context(game_state, request)
+                html = render_to_string('games/2048_game.html', context)
+                return JsonResponse({
+                    'html': html,
+                    'game_state': {
+                        'grid': game_state['grid'],
+                        'score': game_state['score'],
+                        'game_over': game_state['game_over'],
+                        'won': game_state['won'],
+                        'moves': game_state['moves']
+                    },
+                    'error': 'Игра уже окончена'
+                })
+            
+            # Сохраняем старое состояние для сравнения
+            old_grid = [row[:] for row in game_state['grid']]
             
             # Делаем ход
-            old_grid = [row[:] for row in game_state['grid']]
             moved = move_2048_tiles(game_state, direction)
             
             if moved:
@@ -241,10 +266,13 @@ def game_2048_move(request):
             
             # Сохраняем состояние
             request.session['game_2048'] = game_state
+            request.session.modified = True  # Важно: помечаем сессию как измененную
             
             # Обновляем рекорд
-            if game_state['score'] > request.session.get('2048_high_score', 0):
+            current_high_score = request.session.get('2048_high_score', 0)
+            if game_state['score'] > current_high_score:
                 request.session['2048_high_score'] = game_state['score']
+                request.session.modified = True
             
             # Готовим контекст
             context = prepare_2048_context(game_state, request)
@@ -266,17 +294,21 @@ def game_2048_move(request):
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Некорректный JSON'}, status=400)
         except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
+            import traceback
+            print(f"Ошибка в game_2048_move: {str(e)}")
+            print(traceback.format_exc())
+            return JsonResponse({'error': f'Внутренняя ошибка сервера: {str(e)}'}, status=500)
     
     return JsonResponse({'error': 'Метод не поддерживается'}, status=405)
 
 @login_required
 def game_2048_new(request):
     """AJAX: Новая игра 2048"""
-    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+    if request.method == 'POST':
         # Инициализируем новую игру
         game_state = initialize_2048_game()
         request.session['game_2048'] = game_state
+        request.session.modified = True
         
         # Готовим контекст
         context = prepare_2048_context(game_state, request)
@@ -371,19 +403,24 @@ def move_2048_tiles(game_state, direction):
 
 def merge_2048_row(row):
     """Объединить плитки в строке для 2048"""
-    new_row = [x for x in row if x != 0]
+    # Удаляем нули
+    non_zero = [x for x in row if x != 0]
     added_score = 0
     
+    # Объединяем плитки
     i = 0
-    while i < len(new_row) - 1:
-        if new_row[i] == new_row[i + 1]:
-            new_row[i] *= 2
-            added_score += new_row[i]
-            new_row.pop(i + 1)
+    while i < len(non_zero) - 1:
+        if non_zero[i] == non_zero[i + 1]:
+            non_zero[i] *= 2
+            added_score += non_zero[i]
+            non_zero.pop(i + 1)
         i += 1
     
-    new_row += [0] * (4 - len(new_row))
-    return new_row, added_score
+    # Дополняем нулями до длины 4
+    while len(non_zero) < 4:
+        non_zero.append(0)
+    
+    return non_zero, added_score
 
 def can_2048_move(grid):
     """Проверить, есть ли возможные ходы в 2048"""
@@ -393,12 +430,13 @@ def can_2048_move(grid):
             if grid[i][j] == 0:
                 return True
     
-    # Проверка возможных слияний
+    # Проверка возможных слияний по горизонтали
     for i in range(4):
         for j in range(3):
             if grid[i][j] == grid[i][j + 1]:
                 return True
     
+    # Проверка возможных слияний по вертикали
     for j in range(4):
         for i in range(3):
             if grid[i][j] == grid[i + 1][j]:
@@ -408,13 +446,21 @@ def can_2048_move(grid):
 
 def prepare_2048_context(game_state, request):
     """Подготовка контекста для 2048"""
+    high_score = request.session.get('2048_high_score', 0)
+    current_score = game_state.get('score', 0)
+    
+    # Обновляем рекорд, если текущий счет больше
+    if current_score > high_score:
+        request.session['2048_high_score'] = current_score
+        high_score = current_score
+    
     return {
-        'grid': game_state['grid'],
-        'score': game_state['score'],
-        'high_score': request.session.get('2048_high_score', 0),
-        'game_over': game_state['game_over'],
-        'won': game_state['won'],
-        'moves': game_state['moves'],
+        'grid': game_state.get('grid', [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]),
+        'score': current_score,
+        'high_score': high_score,
+        'game_over': game_state.get('game_over', False),
+        'won': game_state.get('won', False),
+        'moves': game_state.get('moves', 0),
     }
 
 # ==================== ОБЩИЕ ФУНКЦИИ ====================
@@ -470,6 +516,7 @@ def rock_paper_scissors(request):
             
             stats['round'] += 1
             request.session['rps_stats'] = stats
+            request.session.modified = True
             
             # Сохраняем в сессии для отображения
             request.session['rps_last_game'] = {
@@ -481,6 +528,7 @@ def rock_paper_scissors(request):
             # Обновляем общую статистику побед
             if result == 'win':
                 request.session['rps_wins'] = request.session.get('rps_wins', 0) + 1
+                request.session.modified = True
             
             return render(request, 'games/rock_paper_scissors.html', {
                 'wins': stats['wins'],
@@ -494,6 +542,7 @@ def rock_paper_scissors(request):
         elif 'new_game' in request.POST:
             # Новая игра
             request.session['rps_stats'] = {'wins': 0, 'losses': 0, 'draws': 0, 'round': 0}
+            request.session.modified = True
             return render(request, 'games/rock_paper_scissors.html', {
                 'wins': 0,
                 'losses': 0,

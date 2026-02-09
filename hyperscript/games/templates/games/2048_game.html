@@ -3,35 +3,37 @@
     <div class="row mb-4">
         <div class="col-md-4 mb-3">
             <div class="border rounded p-3 text-center bg-light">
-                <small>Счет</small>
-                <div class="h3 mb-0 text-primary">{{ score }}</div>
+                <small class="text-muted d-block mb-1">Счет</small>
+                <div class="h3 mb-0 text-primary">{{ score|default:0 }}</div>
             </div>
         </div>
         <div class="col-md-4 mb-3">
             <div class="border rounded p-3 text-center bg-light">
-                <small>Рекорд</small>
-                <div class="h3 mb-0 text-warning">{{ high_score }}</div>
+                <small class="text-muted d-block mb-1">Рекорд</small>
+                <div class="h3 mb-0 text-warning">{{ high_score|default:0 }}</div>
             </div>
         </div>
         <div class="col-md-4 mb-3">
             <div class="border rounded p-3 text-center bg-light">
-                <small>Ходы</small>
-                <div class="h3 mb-0 text-info">{{ moves }}</div>
+                <small class="text-muted d-block mb-1">Ходы</small>
+                <div class="h3 mb-0 text-info">{{ moves|default:0 }}</div>
             </div>
         </div>
     </div>
     
     {% if won and not game_over %}
-    <div class="alert alert-success mb-4">
-        <h4>🎉 Поздравляем! Вы достигли 2048!</h4>
+    <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+        <h4 class="alert-heading">🎉 Поздравляем! Вы достигли 2048!</h4>
         <p class="mb-0">Продолжайте играть, чтобы улучшить счет!</p>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
     {% endif %}
     
     {% if game_over %}
-    <div class="alert alert-danger mb-4">
-        <h4>💀 Игра окончена!</h4>
-        <p class="mb-0">Нет возможных ходов. Ваш счет: {{ score }}</p>
+    <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+        <h4 class="alert-heading">💀 Игра окончена!</h4>
+        <p class="mb-0">Нет возможных ходов. Ваш счет: {{ score|default:0 }}</p>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
     {% endif %}
     
@@ -42,11 +44,13 @@
             <div class="grid-row">
                 {% for cell in row %}
                 <div class="grid-cell">
-                    <div class="tile tile-{{ cell }} {% if cell != 0 %}tile-show{% endif %}">
-                        {% if cell != 0 %}
-                            {{ cell }}
-                        {% endif %}
+                    {% if cell != 0 %}
+                    <div class="tile tile-{{ cell }} tile-show">
+                        {{ cell }}
                     </div>
+                    {% else %}
+                    <div class="tile"></div>
+                    {% endif %}
                 </div>
                 {% endfor %}
             </div>

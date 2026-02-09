@@ -30,25 +30,25 @@
                             <div class="d-flex flex-column align-items-center">
                                 <!-- Вверх -->
                                 <div class="mb-2">
-                                    <button type="button" class="btn btn-outline-primary btn-control" onclick="makeMove('up')">
+                                    <button type="button" class="btn btn-outline-primary btn-control" onclick="makeMove2048('up')">
                                         ↑ Вверх
                                     </button>
                                 </div>
                                 
                                 <!-- Влево и вправо -->
                                 <div class="d-flex mb-2">
-                                    <button type="button" class="btn btn-outline-primary btn-control me-2" onclick="makeMove('left')">
+                                    <button type="button" class="btn btn-outline-primary btn-control me-2" onclick="makeMove2048('left')">
                                         ← Влево
                                     </button>
                                     
-                                    <button type="button" class="btn btn-outline-primary btn-control" onclick="makeMove('right')">
+                                    <button type="button" class="btn btn-outline-primary btn-control" onclick="makeMove2048('right')">
                                         Вправо →
                                     </button>
                                 </div>
                                 
                                 <!-- Вниз -->
                                 <div>
-                                    <button type="button" class="btn btn-outline-primary btn-control" onclick="makeMove('down')">
+                                    <button type="button" class="btn btn-outline-primary btn-control" onclick="makeMove2048('down')">
                                         ↓ Вниз
                                     </button>
                                 </div>
@@ -65,7 +65,7 @@
                         
                         <!-- Кнопки управления игрой -->
                         <div class="text-center">
-                            <button type="button" class="btn btn-success btn-lg" onclick="newGame()">
+                            <button type="button" class="btn btn-success btn-lg" onclick="newGame2048()">
                                 🚀 Новая игра
                             </button>
                             
@@ -92,7 +92,7 @@
     </div>
 </div>
 
-<!-- JavaScript для AJAX -->
+<!-- JavaScript для игры 2048 -->
 <script>
 // CSRF токен для AJAX запросов
 function getCookie(name) {
@@ -111,32 +111,68 @@ function getCookie(name) {
 }
 const csrftoken = getCookie('csrftoken');
 
+// Функция для получения текста кнопки по направлению
+function getButtonTextForDirection(direction) {
+    const texts = {
+        'up': '↑ Вверх',
+        'down': '↓ Вниз',
+        'left': '← Влево',
+        'right': 'Вправо →'
+    };
+    return texts[direction] || direction;
+}
+
+// Функция для отключения кнопок хода
+function disableMoveButtons2048() {
+    const buttons = document.querySelectorAll('.btn-control');
+    buttons.forEach(button => {
+        button.disabled = true;
+        button.classList.add('disabled');
+    });
+}
+
+// Функция для включения кнопок хода
+function enableMoveButtons2048() {
+    const buttons = document.querySelectorAll('.btn-control');
+    buttons.forEach(button => {
+        button.disabled = false;
+        button.classList.remove('disabled');
+    });
+}
+
 // Функция для выполнения хода в 2048
-function makeMove(direction) {
+function makeMove2048(direction) {
     console.log('Ход 2048:', direction);
     
-    // Показываем индикатор загрузки
-    const button = document.querySelector(`[onclick*="${direction}"]`);
+    // Находим кнопку и сохраняем оригинальный текст
+    const button = document.querySelector(`[onclick*="makeMove2048('${direction}')"]`);
+    let originalText = '';
     if (button) {
-        const originalText = button.innerHTML;
-        button.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+        originalText = button.innerHTML;
+        button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Загрузка...';
         button.disabled = true;
+        button.classList.add('disabled');
     }
+    
+    // Собираем заголовки
+    const headers = {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrftoken,
+        'X-Requested-With': 'XMLHttpRequest'
+    };
     
     // Отправляем AJAX запрос
     fetch('/games/2048/move/', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrftoken
-        },
+        headers: headers,
         body: JSON.stringify({ direction: direction })
     })
     .then(response => {
         console.log('Статус ответа:', response.status);
         if (!response.ok) {
-            return response.json().then(err => {
-                throw new Error(err.error || `HTTP error! status: ${response.status}`);
+            return response.text().then(text => {
+                console.error('Текст ошибки:', text);
+                throw new Error(`HTTP error! status: ${response.status}, текст: ${text}`);
             });
         }
         return response.json();
@@ -155,22 +191,23 @@ function makeMove(direction) {
         // Восстанавливаем кнопку
         if (button) {
             button.disabled = false;
+            button.classList.remove('disabled');
             button.innerHTML = getButtonTextForDirection(direction);
         }
         
         // Показываем уведомление
         if (data.message) {
-            showNotification2048(data.message, 'success');
+            showNotification2048(data.message, data.moved ? 'success' : 'warning');
         }
         
         // Если игра окончена
-        if (data.game_state?.game_over) {
+        if (data.game_state && data.game_state.game_over) {
             showNotification2048('💀 Игра окончена! Начните новую игру.', 'danger');
-            disableMoveButtons();
+            disableMoveButtons2048();
         }
         
         // Если достигли 2048
-        if (data.game_state?.won) {
+        if (data.game_state && data.game_state.won) {
             showNotification2048('🎉 Поздравляем! Вы достигли 2048!', 'success');
         }
     })
@@ -181,6 +218,7 @@ function makeMove(direction) {
         // Восстанавливаем кнопку
         if (button) {
             button.disabled = false;
+            button.classList.remove('disabled');
             button.innerHTML = getButtonTextForDirection(direction);
         }
     });
@@ -189,45 +227,202 @@ function makeMove(direction) {
 // Функция обновления игрового поля 2048
 function updateGame2048(data) {
     const container = document.getElementById('gameContainer2048');
-    if (!container || !data.html) {
-        console.error('Контейнер не найден или нет HTML в ответе');
+    if (!container) {
+        console.error('Контейнер не найден');
         return;
     }
     
-    // Заменяем контент
-    container.innerHTML = data.html;
+    if (data.html) {
+        // Заменяем контент
+        container.innerHTML = data.html;
+        
+        // Добавляем анимации плиткам
+        setTimeout(() => {
+            init2048Animations();
+        }, 100);
+    } else if (data.game_state) {
+        // Если нет HTML, обновляем данные вручную
+        updateGameState2048(data.game_state);
+    }
+}
+
+// Функция для ручного обновления состояния игры
+function updateGameState2048(gameState) {
+    // Обновляем счет
+    const scoreElement = document.querySelector('.text-primary');
+    if (scoreElement && gameState.score !== undefined) {
+        const parent = scoreElement.closest('.h3');
+        if (parent) parent.textContent = gameState.score;
+    }
     
-    // Добавляем анимации плиткам
-    setTimeout(() => {
-        init2048Animations();
-    }, 100);
+    // Обновляем ходы
+    const movesElement = document.querySelector('.text-info');
+    if (movesElement && gameState.moves !== undefined) {
+        const parent = movesElement.closest('.h3');
+        if (parent) parent.textContent = gameState.moves;
+    }
+    
+    // Обновляем сетку
+    if (gameState.grid) {
+        const gridContainer = document.querySelector('.grid-container');
+        if (gridContainer) {
+            let html = '';
+            for (let i = 0; i < gameState.grid.length; i++) {
+                html += '<div class="grid-row">';
+                for (let j = 0; j < gameState.grid[i].length; j++) {
+                    const cell = gameState.grid[i][j];
+                    html += `<div class="grid-cell">`;
+                    if (cell !== 0) {
+                        html += `<div class="tile tile-${cell} tile-show">${cell}</div>`;
+                    }
+                    html += `</div>`;
+                }
+                html += '</div>';
+            }
+            gridContainer.innerHTML = html;
+            
+            // Добавляем анимации
+            setTimeout(() => {
+                init2048Animations();
+            }, 100);
+        }
+    }
+}
+
+// Функция инициализации анимаций плиток
+function init2048Animations() {
+    const tiles = document.querySelectorAll('.tile:not(.tile-show)');
+    tiles.forEach(tile => {
+        if (tile.textContent.trim() !== '') {
+            setTimeout(() => {
+                tile.classList.add('tile-show');
+            }, 50);
+        }
+    });
 }
 
 // Функция показа уведомления для 2048
 function showNotification2048(message, type = 'info') {
+    // Создаем уведомление
     const notification = document.createElement('div');
-    notification.className = `alert alert-${type} alert-dismissible fade show`;
+    notification.className = `alert alert-${type} alert-dismissible fade show mt-3`;
+    notification.setAttribute('role', 'alert');
     notification.innerHTML = `
         ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     `;
     
     const container = document.getElementById('gameContainer2048');
     if (container) {
+        // Удаляем старые уведомления
+        const oldAlerts = container.querySelectorAll('.alert');
+        oldAlerts.forEach(alert => {
+            if (alert !== notification) {
+                alert.remove();
+            }
+        });
+        
+        // Добавляем новое уведомление
         container.insertBefore(notification, container.firstChild);
         
+        // Автоматически скрываем через 3 секунды
         setTimeout(() => {
             if (notification.parentNode) {
-                const bsAlert = new bootstrap.Alert(notification);
-                bsAlert.close();
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.remove();
+                    }
+                }, 150);
             }
         }, 3000);
     }
 }
+
+// Функция для начала новой игры
+function newGame2048() {
+    // Показываем индикатор загрузки
+    const button = document.querySelector('[onclick="newGame2048()"]');
+    if (button) {
+        const originalText = button.innerHTML;
+        button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Создание...';
+        button.disabled = true;
+    }
+    
+    // Собираем заголовки
+    const headers = {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrftoken,
+        'X-Requested-With': 'XMLHttpRequest'
+    };
+    
+    // Отправляем запрос на новую игру
+    fetch('/games/2048/new/', {
+        method: 'POST',
+        headers: headers
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Новая игра:', data);
+        
+        // Обновляем игровое поле
+        updateGame2048(data);
+        
+        // Включаем кнопки
+        enableMoveButtons2048();
+        
+        // Восстанавливаем кнопку
+        if (button) {
+            button.disabled = false;
+            button.innerHTML = '🚀 Новая игра';
+        }
+        
+        // Показываем уведомление
+        showNotification2048('🎮 Новая игра начата!', 'success');
+    })
+    .catch(error => {
+        console.error('Ошибка новой игры:', error);
+        showNotification2048('Ошибка: ' + error.message, 'danger');
+        
+        // Восстанавливаем кнопку
+        if (button) {
+            button.disabled = false;
+            button.innerHTML = '🚀 Новая игра';
+        }
+    });
+}
+
+// Обработчик клавиатуры
+document.addEventListener('keydown', function(event) {
+    if (document.querySelector('.game-board')) {
+        const keyMap = {
+            'ArrowUp': 'up',
+            'ArrowDown': 'down',
+            'ArrowLeft': 'left',
+            'ArrowRight': 'right'
+        };
+        
+        const direction = keyMap[event.key];
+        if (direction) {
+            event.preventDefault();
+            makeMove2048(direction);
+        }
+    }
+});
+
+// Инициализация при загрузке
+document.addEventListener('DOMContentLoaded', function() {
+    init2048Animations();
+});
 </script>
 
 <style>
-/* Стили игрового поля (остаются как были) */
+/* Стили игрового поля */
 .game-board {
     background: #bbada0;
     border-radius: 10px;
@@ -287,7 +482,7 @@ function showNotification2048(message, type = 'info') {
     100% { opacity: 1; transform: scale(1); }
 }
 
-/* Цвета плиток (остаются как были) */
+/* Цвета плиток */
 .tile-2 { background: #eee4da; font-size: 2.2rem; }
 .tile-4 { background: #ede0c8; font-size: 2.2rem; }
 .tile-8 { background: #f2b179; color: #f9f6f2; font-size: 2rem; }
@@ -354,7 +549,7 @@ function showNotification2048(message, type = 'info') {
     .tile-2, .tile-4 { font-size: 1.6rem; }
     .tile-8, .tile-16, .tile-32 { font-size: 1.4rem; }
     .tile-64, .tile-128, .tile-256, .tile-512 { font-size: 1.3rem; }
-    .tile-1024, .tile-2048, .tile-4096, .tile-8192 { font-size: 1.1rem; }
+    .tile-1024, .tile-2048 { font-size: 1.1rem; }
     
     .btn-control {
         padding: 10px 15px;
