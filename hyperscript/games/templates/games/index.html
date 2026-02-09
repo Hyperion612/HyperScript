@@ -13,27 +13,27 @@
     </div>
 
     <!-- Статистика (для авторизованных пользователей) -->
-    {% if user.is_authenticated %}
+    {% if user.is_authenticated and user_games_stats %}
     <div class="row mb-5">
         <div class="col-12">
             <div class="card bg-light border-0 shadow-sm">
                 <div class="card-body">
                     <h5 class="card-title">📊 Ваша игровая статистика</h5>
                     <div class="row text-center">
-                        <div class="col-md-3">
-                            <div class="h3 text-primary">{{ user_games_stats.rps_wins|default:"0" }}</div>
+                        <div class="col-md-3 mb-3">
+                            <div class="h3 text-primary">{{ user_games_stats.rps_wins|default:0 }}</div>
                             <small>Побед в КНБ</small>
                         </div>
-                        <div class="col-md-3">
-                            <div class="h3 text-success">{{ user_games_stats.hangman_wins|default:"0" }}</div>
+                        <div class="col-md-3 mb-3">
+                            <div class="h3 text-success">{{ user_games_stats.hangman_wins|default:0 }}</div>
                             <small>Побед в Виселице</small>
                         </div>
-                        <div class="col-md-3">
-                            <div class="h3 text-warning">{{ user_games_stats.game_2048_high_score|default:"0" }}</div>
+                        <div class="col-md-3 mb-3">
+                            <div class="h3 text-warning">{{ user_games_stats.game_2048_high_score|default:0 }}</div>
                             <small>Рекорд в 2048</small>
                         </div>
-                        <div class="col-md-3">
-                            <div class="h3 text-info">{{ user_games_stats.total_games|default:"0" }}</div>
+                        <div class="col-md-3 mb-3">
+                            <div class="h3 text-info">{{ user_games_stats.total_games|default:0 }}</div>
                             <small>Всего сыграно</small>
                         </div>
                     </div>
@@ -63,12 +63,12 @@
                     </div>
                     
                     <div class="d-grid gap-2">
-                        <a href="/games/rock-paper-scissors/" class="btn btn-primary btn-lg"></a>
+                        <a href="/games/rock-paper-scissors/" class="btn btn-primary btn-lg">
                             <i class="fas fa-play-circle"></i> Играть
                         </a>
-                        <a href="#rps-rules" class="btn btn-outline-secondary" data-bs-toggle="collapse">
+                        <button class="btn btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#rps-rules">
                             <i class="fas fa-info-circle"></i> Правила
-                        </a>
+                        </button>
                     </div>
                     
                     <div class="collapse mt-3" id="rps-rules">
@@ -106,12 +106,12 @@
                     </div>
                     
                     <div class="d-grid gap-2">
-                        <a href="/games/hangman/" class="btn btn-success">
+                        <a href="/games/hangman/" class="btn btn-success btn-lg">
                             <i class="fas fa-play-circle"></i> Играть
                         </a>
-                        <a href="#hangman-rules" class="btn btn-outline-secondary" data-bs-toggle="collapse">
+                        <button class="btn btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#hangman-rules">
                             <i class="fas fa-info-circle"></i> Правила
-                        </a>
+                        </button>
                     </div>
                     
                     <div class="collapse mt-3" id="hangman-rules">
@@ -149,15 +149,15 @@
                     </div>
                     
                     <div class="d-grid gap-2">
-                        <a href="/games/2048/" class="btn btn-warning">
+                        <a href="/games/2048/" class="btn btn-warning btn-lg">
                             <i class="fas fa-play-circle"></i> Играть
                         </a>
-                        <a href="#2048-rules" class="btn btn-outline-secondary" data-bs-toggle="collapse">
+                        <button class="btn btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#rules-2048">
                             <i class="fas fa-info-circle"></i> Правила
-                        </a>
+                        </button>
                     </div>
                     
-                    <div class="collapse mt-3" id="2048-rules">
+                    <div class="collapse mt-3" id="rules-2048">
                         <div class="card card-body text-start small">
                             <strong>Правила:</strong>
                             <ul class="mb-0">
@@ -230,7 +230,7 @@
                 <div class="card-body">
                     <h5 class="card-title">💡 Советы для игроков</h5>
                     <div class="row">
-                        <div class="col-md-4">
+                        <div class="col-md-4 mb-3">
                             <div class="d-flex">
                                 <div class="me-3 text-primary">🎮</div>
                                 <div>
@@ -239,7 +239,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-4 mb-3">
                             <div class="d-flex">
                                 <div class="me-3 text-success">📈</div>
                                 <div>
@@ -248,7 +248,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-4 mb-3">
                             <div class="d-flex">
                                 <div class="me-3 text-warning">🏆</div>
                                 <div>
@@ -314,6 +314,8 @@
 /* Анимация для кнопок */
 .btn-lg {
     transition: all 0.2s ease;
+    padding: 12px 24px;
+    font-weight: 500;
 }
 
 .btn-lg:hover {
@@ -331,6 +333,7 @@
     }
     
     .btn-group {
+        display: flex;
         flex-direction: column;
         width: 100%;
     }
@@ -338,30 +341,88 @@
     .btn-group .btn {
         margin-bottom: 10px;
         width: 100%;
+        border-radius: 8px !important;
+    }
+    
+    .game-features .badge {
+        font-size: 0.6rem;
+        padding: 4px 6px;
     }
 }
 
 /* Анимация загрузки */
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+    from { 
+        opacity: 0; 
+        transform: translateY(20px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
 }
 
 .game-card {
     animation: fadeIn 0.5s ease forwards;
+    opacity: 0;
 }
 
-.game-card:nth-child(2) {
+.game-card:nth-child(1) {
     animation-delay: 0.1s;
 }
 
-.game-card:nth-child(3) {
+.game-card:nth-child(2) {
     animation-delay: 0.2s;
+}
+
+.game-card:nth-child(3) {
+    animation-delay: 0.3s;
 }
 
 /* Бейджи статусов */
 .badge {
     font-weight: 500;
+    border-radius: 20px;
+}
+
+/* Улучшения для карточек */
+.card-footer {
+    background-color: rgba(0,0,0,0.02);
+    border-top: 1px solid rgba(0,0,0,0.1);
+    padding: 10px 15px;
+}
+
+.card-title {
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+/* Стили для кнопок правил */
+.btn-outline-secondary {
+    border-color: #dee2e6;
+    color: #6c757d;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #f8f9fa;
+    border-color: #adb5bd;
+    color: #495057;
+}
+
+/* Отступы для мобильных устройств */
+@media (max-width: 576px) {
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    h1 {
+        font-size: 2rem;
+    }
+    
+    .lead {
+        font-size: 1.1rem;
+    }
 }
 </style>
 
@@ -380,19 +441,31 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Плавная прокрутка для правил
-    document.querySelectorAll('a[data-bs-toggle="collapse"]').forEach(link => {
-        link.addEventListener('click', function(e) {
-            const target = this.getAttribute('href');
-            const targetElement = document.querySelector(target);
+    // Инициализация collapse элементов Bootstrap
+    const collapseElements = document.querySelectorAll('[data-bs-toggle="collapse"]');
+    collapseElements.forEach(element => {
+        element.addEventListener('click', function() {
+            const targetId = this.getAttribute('data-bs-target');
+            const targetElement = document.querySelector(targetId);
             
-            if (targetElement.classList.contains('show')) {
-                targetElement.style.transition = 'all 0.3s ease';
+            if (targetElement) {
+                // Добавляем анимацию для плавного открытия/закрытия
+                if (!targetElement.classList.contains('collapsing')) {
+                    targetElement.style.transition = 'height 0.35s ease';
+                }
             }
         });
     });
     
+    // Сообщение в консоль для отладки
     console.log('🎮 Страница игр загружена!');
+    
+    // Проверка поддержки localStorage для будущих улучшений
+    if (typeof(Storage) !== "undefined") {
+        console.log('✅ localStorage поддерживается');
+    } else {
+        console.warn('⚠️ localStorage не поддерживается');
+    }
 });
 </script>
 {% endblock %}
